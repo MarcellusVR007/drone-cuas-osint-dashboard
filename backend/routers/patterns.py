@@ -198,39 +198,45 @@ async def auto_detect_patterns(db: Session = Depends(get_db)):
             db.add(pattern)
             results.append(f"Detected drone pattern: {drone_desc} ({count} incidents)")
 
-    # Pattern 3: Temporal patterns - multiple incidents on same date (coordinated campaigns)
+    # Pattern 3: Temporal patterns - coordinated campaigns (incidents with "coordinated" in description)
     from sqlalchemy import cast, Date
-    temporal_patterns = db.query(
-        cast(Incident.sighting_date, Date).label("date"),
-        func.count(Incident.id).label("count")
-    ).filter(Incident.sighting_date.isnot(None)).group_by(
-        cast(Incident.sighting_date, Date)
-    ).having(func.count(Incident.id) >= 2).all()
+    coordinated_incidents = db.query(Incident).filter(
+        Incident.sighting_date.isnot(None),
+        Incident.description.ilike("%coordinated%")
+    ).all()
 
-    for sighting_date, count in temporal_patterns:
-        # Check if any incident on this date has "coordinated" in description
-        coordinated_incidents = db.query(Incident).filter(
-            cast(Incident.sighting_date, Date) == sighting_date,
-            Incident.description.ilike("%coordinated%")
-        ).all()
-
-        if coordinated_incidents:
+    for incident in coordinated_incidents:
+        # Extract date as string
+        if hasattr(incident.sighting_date, 'date'):
+            sighting_date = incident.sighting_date.date()
             date_str = sighting_date.strftime("%Y-%m-%d")
-            existing = db.query(Pattern).filter(
-                Pattern.pattern_type == "temporal",
-                Pattern.name.ilike(f"%{date_str}%")
-            ).first()
+        else:
+            sighting_date = incident.sighting_date
+            date_str = str(sighting_date)
 
-            if not existing:
-                pattern = Pattern(
-                    name=f"Coordinated campaign - {date_str}",
-                    description=f"{count} incidents on {date_str} - coordinated wave detected",
-                    pattern_type="temporal",
-                    incident_count=count,
-                    confidence_score=0.8
-                )
-                db.add(pattern)
-                results.append(f"Detected temporal pattern: Coordinated campaign on {date_str} ({count} incidents)")
+        # Check if pattern already exists for this date
+        existing = db.query(Pattern).filter(
+            Pattern.pattern_type == "temporal",
+            Pattern.name.ilike(f"%{date_str}%")
+        ).first()
+
+        if not existing:
+            # Count total incidents on this date
+            incidents_on_date = db.query(Incident).filter(
+                cast(Incident.sighting_date, Date) == sighting_date
+            ).count()
+
+            incident_count = incidents_on_date if incidents_on_date > 0 else 1
+
+            pattern = Pattern(
+                name=f"Coordinated campaign - {date_str}",
+                description=f"{incident_count} incident(s) on {date_str} - coordinated campaign detected",
+                pattern_type="temporal",
+                incident_count=incident_count,
+                confidence_score=0.8
+            )
+            db.add(pattern)
+            results.append(f"Detected temporal pattern: Coordinated campaign on {date_str} ({incident_count} incident(s))")
 
     db.commit()
     return {
