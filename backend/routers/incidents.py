@@ -85,6 +85,7 @@ class IncidentResponse(BaseModel):
     drone_description: Optional[str]
     drone_characteristics: Optional[str]
     drone_characteristics_sources: Optional[str]
+    restricted_area_id: Optional[int]  # For location lookup in frontend
     distance_to_restricted_m: Optional[int]
     duration_minutes: Optional[int]
     source: str
@@ -155,6 +156,7 @@ async def list_incidents(
             "drone_description": incident.drone_description,
             "drone_characteristics": incident.drone_characteristics,
             "drone_characteristics_sources": incident.drone_characteristics_sources,
+            "restricted_area_id": incident.restricted_area_id,  # Needed for location lookup
             "distance_to_restricted_m": incident.distance_to_restricted_m,
             "duration_minutes": incident.duration_minutes,
             "source": incident.source,
