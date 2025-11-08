@@ -29,6 +29,25 @@ const app = createApp({
         // Computed
         const filteredIncidents = computed(() => incidents.value.slice(0, 20));
 
+        // Helper function to convert source code to full name
+        const getSourceName = (sourceCode) => {
+            const sourceMap = {
+                'senhive': 'Senhive (Drone Detection)',
+                'bbc_monitoring': 'BBC Monitoring (OSINT)',
+                'janes_ihs': 'Janes Intelligence (Military DB)',
+                'reuters_news': 'Reuters News',
+                'military_aviation_forums': 'Military Aviation Forums',
+                'adsb_exchange': 'ADS-B Exchange',
+                'dutch_mil_intel': 'Dutch Ministry of Defence',
+                'belgian_mil_intel': 'Belgian Ministry of Defence',
+                'twitter_osint': 'Twitter/X OSINT',
+                'flightradar24': 'FlightRadar24',
+                'nato_air_ops': 'NATO Early Warning',
+                'citizen_submissions': 'Citizen Submissions'
+            };
+            return sourceMap[sourceCode] || sourceCode;
+        };
+
         // Methods
         const fetchStats = async () => {
             try {
@@ -336,7 +355,7 @@ const app = createApp({
                                 <strong>Source & Verification</strong>
                             </div>
                             <div class="card-body">
-                                <p><strong>Primary Data Source:</strong> <span class="badge badge-info">${incident.source}</span></p>
+                                <p><strong>Primary Data Source:</strong> <span class="badge badge-info">${getSourceName(incident.source)}</span></p>
                                 <p><strong>Available Intelligence Sources:</strong></p>
                                 <div class="row g-2 mb-3">
                                     <div class="col-md-6">
@@ -689,6 +708,7 @@ const app = createApp({
             formatDate,
             getThreatColor,
             getLocationName,
+            getSourceName,
             initDetailMap,
             watch: () => {
                 // Manual watch implementation
