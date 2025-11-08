@@ -727,7 +727,6 @@ const app = createApp({
         currentView(newView) {
             if (newView === 'dashboard') {
                 this.fetchStats();
-            } else if (newView === 'incidents') {
                 this.fetchIncidents();
             } else if (newView === 'drones') {
                 this.fetchDroneTypes();
