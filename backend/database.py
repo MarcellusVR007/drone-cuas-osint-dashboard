@@ -5,6 +5,11 @@ from backend.models import Base
 
 # Use absolute path to SQLite database
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "drone_cuas.db")
+
+# Create the data directory if it doesn't exist (important for Render deployment)
+db_dir = os.path.dirname(db_path)
+os.makedirs(db_dir, exist_ok=True)
+
 DATABASE_URL = f"sqlite:///{db_path}?check_same_thread=False&timeout=30"
 
 engine = create_engine(
