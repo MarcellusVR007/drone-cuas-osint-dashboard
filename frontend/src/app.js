@@ -29,6 +29,12 @@ const app = createApp({
         // Computed
         const filteredIncidents = computed(() => incidents.value.slice(0, 20));
 
+        // Initialize data on component mount
+        onMounted(async () => {
+            await fetchStats();
+            await fetchIncidents();
+        });
+
         // Helper function to convert source code to full name
         const getSourceName = (sourceCode) => {
             const sourceMap = {
