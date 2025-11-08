@@ -429,9 +429,6 @@
                     <div class="sidebar-item" @click="currentView = 'incidents'" :class="{active: currentView === 'incidents'}">
                         <i class="fas fa-exclamation-triangle"></i> Incidents
                     </div>
-                    <div class="sidebar-item" @click="currentView = 'drones'" :class="{active: currentView === 'drones'}">
-                        <i class="fas fa-drone"></i> Drone Types
-                    </div>
                     <div class="sidebar-item" @click="currentView = 'areas'" :class="{active: currentView === 'areas'}">
                         <i class="fas fa-shield-alt"></i> Restricted Areas
                     </div>
@@ -589,40 +586,6 @@
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Drones View -->
-                    <div v-if="currentView === 'drones'">
-                        <h2 class="mb-4"><i class="fas fa-drone text-danger"></i> Drone Types</h2>
-                        <div class="card">
-                            <div class="card-body">
-                                <div v-if="loading" class="text-center">
-                                    <div class="loading"></div>
-                                </div>
-                                <table v-else class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Model</th>
-                                            <th>Manufacturer</th>
-                                            <th>Country</th>
-                                            <th>Range (km)</th>
-                                            <th>Endurance (min)</th>
-                                            <th>Intercept Difficulty</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="drone in droneTypes" :key="drone.id">
-                                            <td><strong>{{ drone.model }}</strong></td>
-                                            <td>{{ drone.manufacturer }}</td>
-                                            <td><span class="badge badge-secondary">{{ drone.country_of_origin }}</span></td>
-                                            <td>{{ drone.range_km || 'N/A' }}</td>
-                                            <td>{{ drone.endurance_minutes || 'N/A' }}</td>
-                                            <td>{{ drone.difficulty_intercept }}/10</td>
                                         </tr>
                                     </tbody>
                                 </table>
