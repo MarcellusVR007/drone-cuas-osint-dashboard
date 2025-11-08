@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT CUAS Dashboard - Counter-UAS Intelligence</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Leaflet Maps -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #dc3545;
+            --secondary: #6c757d;
+            --accent: #0d6efd;
+            --success: #198754;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark-bg: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-light: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0f0f0f;
+            color: var(--text-light);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            background-color: var(--dark-bg);
+            border-bottom: 2px solid var(--danger);
+            box-shadow: 0 4px 6px rgba(220, 53, 69, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--danger) !important;
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            color: var(--text-light) !important;
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--danger) !important;
+            border-bottom: 2px solid var(--danger);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--card-bg);
+            min-height: calc(100vh - 60px);
+            border-right: 1px solid rgba(220, 53, 69, 0.2);
+            padding: 20px 0;
+        }
+
+        .sidebar-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            color: var(--text-light);
+        }
+
+        .sidebar-item:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left-color: var(--danger);
+        }
+
+        .sidebar-item.active {
+            background-color: rgba(220, 53, 69, 0.2);
+            border-left-color: var(--danger);
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            background-color: #0f0f0f;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--danger);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        }
+
+        .card-header {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-bottom: 1px solid rgba(220, 53, 69, 0.2);
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .card-body {
+            color: var(--text-light);
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(13, 110, 253, 0.1) 100%);
+            border-left: 4px solid var(--danger);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--danger);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Map */
+        #map {
+            height: 500px;
+            border-radius: 8px;
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        /* Tables */
+        .table {
+            color: var(--text-light);
+        }
+
+        .table thead th {
+            border-bottom: 2px solid rgba(220, 53, 69, 0.3);
+            color: var(--danger);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid rgba(220, 53, 69, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        .table-danger {
+            background-color: rgba(220, 53, 69, 0.15);
+        }
+
+        /* Badges */
+        .badge-danger {
+            background-color: var(--danger);
+        }
+
+        .badge-success {
+            background-color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: var(--warning);
+            color: #000;
+        }
+
+        .badge-info {
+            background-color: var(--accent);
+        }
+
+        /* Buttons */
+        .btn-danger {
+            background-color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: #bb2d3b;
+            border-color: #bb2d3b;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(220, 53, 69, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--danger);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        /* Icons */
+        .icon-danger {
+            color: var(--danger);
+        }
+
+        .icon-success {
+            color: var(--success);
+        }
+
+        .icon-warning {
+            color: var(--warning);
+        }
+
+        /* Form */
+        .form-control,
+        .form-select {
+            background-color: rgba(45, 45, 45, 0.5);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            color: var(--text-light);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: rgba(45, 45, 45, 0.7);
+            border-color: var(--danger);
+            color: var(--text-light);
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        .form-control::placeholder {
+            color: rgba(224, 224, 224, 0.5);
+        }
+
+        /* Modal */
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        /* Alert */
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.2);
+            border: 1px solid var(--danger);
+            color: var(--text-light);
+        }
+
+        .alert-success {
+            background-color: rgba(25, 135, 84, 0.2);
+            border: 1px solid var(--success);
+            color: var(--text-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid rgba(220, 53, 69, 0.2);
+            }
+
+            .sidebar-item {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+
+            .stat-number {
+                font-size: 1.8rem;
+            }
+
+            #map {
+                height: 300px;
+            }
+        }
+
+        /* Utility */
+        .text-danger {
+            color: var(--danger) !important;
+        }
+
+        .text-success {
+            color: var(--success) !important;
+        }
+
+        .text-muted {
+            color: var(--secondary) !important;
+        }
+
+        .opacity-50 {
+            opacity: 0.5;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        /* Detail Modal Enhancements */
+        .modal-xl {
+            max-width: 95%;
+        }
+
+        .modal-dialog-scrollable .modal-body {
+            max-height: calc(100vh - 150px);
+        }
+
+        .card-header.bg-danger {
+            background-color: rgba(220, 53, 69, 0.3) !important;
+            border-bottom: 2px solid var(--danger);
+        }
+
+        .card-header.bg-secondary {
+            background-color: rgba(108, 117, 125, 0.3) !important;
+            border-bottom: 2px solid var(--secondary);
+        }
+
+        .card-header.bg-info {
+            background-color: rgba(13, 110, 253, 0.3) !important;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .card-header.bg-success {
+            background-color: rgba(25, 135, 84, 0.3) !important;
+            border-bottom: 2px solid var(--success);
+        }
+
+        .card-header.bg-primary {
+            background-color: rgba(13, 110, 253, 0.3) !important;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        #detailMapContainer {
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        .alert-info {
+            background-color: rgba(13, 110, 253, 0.1) !important;
+            border: 1px solid rgba(13, 110, 253, 0.3) !important;
+            color: var(--text-light) !important;
+        }
+
+        .alert-warning {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+            border: 1px solid rgba(255, 193, 7, 0.3) !important;
+            color: var(--text-light) !important;
+        }
+
+        /* Detail Button */
+        .btn-detail {
+            transition: all 0.2s ease;
+        }
+
+        .btn-detail:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+        }
+
+        /* Badge Styling */
+        .badge-secondary {
+            background-color: rgba(108, 117, 125, 0.6);
+        }
+
+        .badge-info {
+            background-color: rgba(13, 110, 253, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+            <div class="container-fluid">
+                <span class="navbar-brand">
+                    <i class="fas fa-drone"></i> OSINT CUAS
+                </span>
+                <span class="text-danger" style="font-size: 0.9rem; margin-left: auto;">
+                    Counter-UAS Intelligence Dashboard
+                </span>
+            </div>
+        </nav>
+
+        <!-- Main Container -->
+        <div class="container-fluid">
+            <div class="row g-0" style="min-height: calc(100vh - 60px);">
+                <!-- Sidebar -->
+                <div class="col-md-2 sidebar">
+                    <div class="sidebar-item" @click="currentView = 'dashboard'" :class="{active: currentView === 'dashboard'}">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                    </div>
+                    <div class="sidebar-item" @click="currentView = 'incidents'" :class="{active: currentView === 'incidents'}">
+                        <i class="fas fa-exclamation-triangle"></i> Incidents
+                    </div>
+                    <div class="sidebar-item" @click="currentView = 'drones'" :class="{active: currentView === 'drones'}">
+                        <i class="fas fa-drone"></i> Drone Types
+                    </div>
+                    <div class="sidebar-item" @click="currentView = 'areas'" :class="{active: currentView === 'areas'}">
+                        <i class="fas fa-shield-alt"></i> Restricted Areas
+                    </div>
+                    <div class="sidebar-item" @click="currentView = 'patterns'" :class="{active: currentView === 'patterns'}">
+                        <i class="fas fa-network-wired"></i> Patterns
+                    </div>
+                    <div class="sidebar-item" @click="currentView = 'interventions'" :class="{active: currentView === 'interventions'}">
+                        <i class="fas fa-shield-virus"></i> Interventions
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-md-10 main-content">
+                    <!-- Dashboard View -->
+                    <div v-if="currentView === 'dashboard'">
+                        <h2 class="mb-4"><i class="fas fa-chart-line text-danger"></i> Dashboard</h2>
+
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ stats.summary?.total_incidents || 0 }}</div>
+                                    <div class="stat-label">Total Incidents</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ stats.summary?.recent_incidents_30d || 0 }}</div>
+                                    <div class="stat-label">Last 30 Days</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ stats.summary?.intervention_success_rate || 0 }}%</div>
+                                    <div class="stat-label">Success Rate</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-number">{{ stats.summary?.total_patterns || 0 }}</div>
+                                    <div class="stat-label">Detected Patterns</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">Top Targeted Locations</div>
+                                    <div class="card-body">
+                                        <table class="table table-sm mb-0">
+                                            <tbody>
+                                                <tr v-for="area in stats.top_targeted_areas" :key="area.name" class="table-danger">
+                                                    <td><i class="fas fa-map-marker-alt text-danger"></i> {{ area.name }}</td>
+                                                    <td class="text-right"><span class="badge badge-danger">{{ area.incidents }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">Most Common Drone Types</div>
+                                    <div class="card-body">
+                                        <table class="table table-sm mb-0">
+                                            <tbody>
+                                                <tr v-for="drone in stats.top_drone_types" :key="drone.model">
+                                                    <td><i class="fas fa-drone text-danger"></i> {{ drone.model }}</td>
+                                                    <td class="text-right"><span class="badge badge-danger">{{ drone.incidents }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Incident Purpose Categories Legend -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <i class="fas fa-info-circle"></i> Incident Classification Guide
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6 class="text-danger"><i class="fas fa-bomb"></i> <strong>Sabotage</strong></h6>
+                                                <p class="small mb-3">Opzettelijke verstoring van kritieke infrastructuur - luchthavens gesloten, gecoördineerde operaties, hybrid attacks</p>
+
+                                                <h6 class="text-warning"><i class="fas fa-binoculars"></i> <strong>Espionage</strong></h6>
+                                                <p class="small mb-3">Spionage en inlichtingenverzameling - surveillance, signals intelligence (SIGINT)</p>
+
+                                                <h6 class="text-secondary"><i class="fas fa-shield-alt"></i> <strong>Military Incursion</strong></h6>
+                                                <p class="small mb-3">Militaire bedreiging - luchtruimschending, neergehaalde drones, vijandige handelingen</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="text-success"><i class="fas fa-flask"></i> <strong>Testing</strong></h6>
+                                                <p class="small mb-3">Trainings- en testoperaties - oefeningen, crashes, trainings drones</p>
+
+                                                <h6 class="text-primary"><i class="fas fa-user"></i> <strong>Civilian</strong></h6>
+                                                <p class="small mb-3">Commerciële en civiele activiteiten - filming, advertising, normale operaties</p>
+
+                                                <h6 class="text-muted"><i class="fas fa-eye"></i> <strong>Reconnaissance</strong></h6>
+                                                <p class="small mb-3">Observatie en monitoring - waarneming, standaard surveillance</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Incidents View -->
+                    <div v-if="currentView === 'incidents'">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2><i class="fas fa-exclamation-triangle text-danger"></i> Incidents</h2>
+                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#incidentModal">
+                                <i class="fas fa-plus"></i> New Incident
+                            </button>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div v-if="loading" class="text-center">
+                                    <div class="loading"></div>
+                                </div>
+                                <table v-else class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Location</th>
+                                            <th>Drone Type</th>
+                                            <th>Source</th>
+                                            <th>Purpose</th>
+                                            <th>Confidence</th>
+                                            <th>Detail</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="incident in incidents" :key="incident.id">
+                                            <td>{{ formatDate(incident.sighting_date) }}</td>
+                                            <td><strong>{{ getLocationName(incident.restricted_area_id) }}</strong></td>
+                                            <td>{{ incident.drone_description || 'N/A' }}</td>
+                                            <td>
+                                                <span class="badge badge-secondary cursor-pointer" @click="viewSourceDetail(incident.source)" style="cursor: pointer;">
+                                                    {{ incident.source }} <i class="fas fa-info-circle ms-1"></i>
+                                                </span>
+                                            </td>
+                                            <td>{{ incident.purpose_assessment || 'Unknown' }}</td>
+                                            <td>{{ (incident.confidence_score * 100).toFixed(0) }}%</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger" @click="viewIncident(incident.id)">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Drones View -->
+                    <div v-if="currentView === 'drones'">
+                        <h2 class="mb-4"><i class="fas fa-drone text-danger"></i> Drone Types</h2>
+                        <div class="card">
+                            <div class="card-body">
+                                <div v-if="loading" class="text-center">
+                                    <div class="loading"></div>
+                                </div>
+                                <table v-else class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Model</th>
+                                            <th>Manufacturer</th>
+                                            <th>Country</th>
+                                            <th>Range (km)</th>
+                                            <th>Endurance (min)</th>
+                                            <th>Intercept Difficulty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="drone in droneTypes" :key="drone.id">
+                                            <td><strong>{{ drone.model }}</strong></td>
+                                            <td>{{ drone.manufacturer }}</td>
+                                            <td><span class="badge badge-secondary">{{ drone.country_of_origin }}</span></td>
+                                            <td>{{ drone.range_km || 'N/A' }}</td>
+                                            <td>{{ drone.endurance_minutes || 'N/A' }}</td>
+                                            <td>{{ drone.difficulty_intercept }}/10</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Areas View -->
+                    <div v-if="currentView === 'areas'">
+                        <h2 class="mb-4"><i class="fas fa-shield-alt text-danger"></i> Restricted Areas</h2>
+                        <div id="map"></div>
+                        <div class="card mt-4">
+                            <div class="card-body">
+                                <div v-if="loading" class="text-center">
+                                    <div class="loading"></div>
+                                </div>
+                                <table v-else class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Country</th>
+                                            <th>Threat Level</th>
+                                            <th>Incidents</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="area in restrictedAreas" :key="area.id">
+                                            <td>{{ area.name }}</td>
+                                            <td><span class="badge badge-danger">{{ area.area_type }}</span></td>
+                                            <td>{{ area.country }}</td>
+                                            <td>
+                                                <span class="badge" :class="`badge-${getThreatColor(area.threat_level)}`">
+                                                    {{ area.threat_level }}/5
+                                                </span>
+                                            </td>
+                                            <td><span class="badge badge-danger">{{ 0 }}</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patterns View -->
+                    <div v-if="currentView === 'patterns'">
+                        <h2 class="mb-4"><i class="fas fa-network-wired text-danger"></i> Detected Patterns</h2>
+                        <div class="card">
+                            <div class="card-body">
+                                <div v-if="loading" class="text-center">
+                                    <div class="loading"></div>
+                                </div>
+                                <div v-else>
+                                    <div v-if="patterns.length === 0" class="alert alert-info">
+                                        No patterns detected yet. <a href="#" @click="autoDetectPatterns">Auto-detect patterns</a>
+                                    </div>
+                                    <table v-else class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Pattern Name</th>
+                                                <th>Type</th>
+                                                <th>Incidents</th>
+                                                <th>Confidence</th>
+                                                <th>Suspected Purpose</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="pattern in patterns" :key="pattern.id">
+                                                <td><strong>{{ pattern.name }}</strong></td>
+                                                <td><span class="badge badge-info">{{ pattern.pattern_type }}</span></td>
+                                                <td>{{ pattern.incident_count }}</td>
+                                                <td>{{ (pattern.confidence_score * 100).toFixed(0) }}%</td>
+                                                <td>{{ pattern.suspected_purpose || 'Unknown' }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interventions View -->
+                    <div v-if="currentView === 'interventions'">
+                        <h2 class="mb-4"><i class="fas fa-shield-virus text-danger"></i> Interventions & Countermeasures</h2>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="text-center">
+                                            <div class="stat-number text-success">{{ interventionStats?.total || 0 }}</div>
+                                            <div class="stat-label">Total Interventions</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="text-center">
+                                            <div class="stat-number text-success">{{ interventionStats?.successful || 0 }}</div>
+                                            <div class="stat-label">Successful</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="text-center">
+                                            <div class="stat-number text-success">{{ interventionStats?.success_rate || 0 }}%</div>
+                                            <div class="stat-label">Success Rate</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div v-if="loading" class="text-center">
+                                    <div class="loading"></div>
+                                </div>
+                                <table v-else class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Outcome</th>
+                                            <th>Avg Response Time</th>
+                                            <th>Success Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="intv in interventionEffectiveness" :key="intv.intervention_type">
+                                            <td><strong>{{ intv.intervention_type }}</strong></td>
+                                            <td>{{ intv.successful }}/{{ intv.total }}</td>
+                                            <td>{{ intv.avg_response_time_minutes }} min</td>
+                                            <td>
+                                                <span :class="`text-${intv.success_rate > 70 ? 'success' : intv.success_rate > 40 ? 'warning' : 'danger'}`">
+                                                    {{ intv.success_rate }}%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incident Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">
+                        <i class="fas fa-search text-danger"></i> Incident Detail Analysis
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detailContent">
+                    <!-- Content populated by Vue -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Source Detail Modal -->
+    <div class="modal fade" id="sourceModal" tabindex="-1" aria-labelledby="sourceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sourceModalLabel">
+                        <i class="fas fa-database text-danger"></i> Data Sources
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="sourceContent">
+                    <!-- Content populated by Vue -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet Maps -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- App -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

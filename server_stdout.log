@@ -1,0 +1,16 @@
+
+============================================================
+  OSINT CUAS Dashboard
+  Counter-UAS Intelligence System
+============================================================
+
+📡 Starting server on 127.0.0.1:8000
+🌐 Dashboard: http://127.0.0.1:8000
+📚 API Docs: http://127.0.0.1:8000/docs
+
+💡 Press Ctrl+C to stop the server
+
+✓ Database initialized
+✓ Seeded 6 restricted areas
+✓ Seeded 5 drone types
+✓ OSINT CUAS Dashboard Ready

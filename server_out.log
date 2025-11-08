@@ -1,0 +1,31 @@
+
+============================================================
+  OSINT CUAS Dashboard
+  Counter-UAS Intelligence System
+============================================================
+
+📡 Starting server on 127.0.0.1:8000
+🌐 Dashboard: http://127.0.0.1:8000
+📚 API Docs: http://127.0.0.1:8000/docs
+
+💡 Press Ctrl+C to stop the server
+
+✓ Database initialized
+✓ Seeded 6 restricted areas
+✓ Seeded 5 drone types
+✓ OSINT CUAS Dashboard Ready
+✓ Browser opened
+INFO:     127.0.0.1:60785 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60785 - "GET /app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60785 - "GET /api/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60785 - "GET /favicon.ico HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60787 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60787 - "GET /api/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60790 - "POST /api/incidents/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60791 - "POST /api/incidents/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60792 - "POST /api/incidents/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60793 - "POST /api/incidents/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60794 - "POST /api/incidents/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60795 - "POST /api/incidents/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60796 - "GET /api/incidents/intelligence/drone-relationships HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60797 - "GET /api/incidents/intelligence/drone-type/1/evidence HTTP/1.1" 200 OK
