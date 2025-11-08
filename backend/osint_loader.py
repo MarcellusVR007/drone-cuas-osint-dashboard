@@ -182,8 +182,8 @@ def infer_purpose(description: str, location_type: str, location_name: str) -> s
 
 def load_osint_data(db: Session):
     """Load OSINT data from CSV if it exists"""
-    # Check if OSINT data CSV exists
-    osint_csv = Path('/Users/marcelruijken/MarLLM/OSINT DATA/drone_incidents_eu.csv')
+    # Check if OSINT data CSV exists - use relative path for portability
+    osint_csv = Path(__file__).parent / 'data' / 'drone_incidents_eu.csv'
 
     if not osint_csv.exists():
         print("ℹ️  No OSINT DATA CSV found")
