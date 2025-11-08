@@ -426,9 +426,6 @@
                     <div class="sidebar-item" @click="currentView = 'dashboard'" :class="{active: currentView === 'dashboard'}">
                         <i class="fas fa-chart-line"></i> Dashboard
                     </div>
-                    <div class="sidebar-item" @click="currentView = 'incidents'" :class="{active: currentView === 'incidents'}">
-                        <i class="fas fa-exclamation-triangle"></i> Incidents
-                    </div>
                     <div class="sidebar-item" @click="currentView = 'areas'" :class="{active: currentView === 'areas'}">
                         <i class="fas fa-map"></i> Map
                     </div>
@@ -469,6 +466,57 @@
                                 <div class="stat-card">
                                     <div class="stat-number">{{ stats.summary?.total_patterns || 0 }}</div>
                                     <div class="stat-label">Detected Patterns</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Incidents Table -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4><i class="fas fa-exclamation-triangle text-danger"></i> Recent Incidents</h4>
+                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#incidentModal">
+                                        <i class="fas fa-plus"></i> New Incident
+                                    </button>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div v-if="loading" class="text-center">
+                                            <div class="loading"></div>
+                                        </div>
+                                        <table v-else class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Location</th>
+                                                    <th>Drone Type</th>
+                                                    <th>Source</th>
+                                                    <th>Purpose</th>
+                                                    <th>Confidence</th>
+                                                    <th>Detail</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="incident in incidents" :key="incident.id">
+                                                    <td>{{ formatDate(incident.sighting_date) }}</td>
+                                                    <td><strong>{{ getLocationName(incident.restricted_area_id) }}</strong></td>
+                                                    <td>{{ incident.drone_description || 'N/A' }}</td>
+                                                    <td>
+                                                        <span class="badge badge-secondary cursor-pointer" @click="viewSourceDetail(incident.source)" style="cursor: pointer;">
+                                                            {{ incident.source }} <i class="fas fa-info-circle ms-1"></i>
+                                                        </span>
+                                                    </td>
+                                                    <td>{{ incident.purpose_assessment || 'Unknown' }}</td>
+                                                    <td>{{ (incident.confidence_score * 100).toFixed(0) }}%</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-danger" @click="viewIncident(incident.id)">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -539,56 +587,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Incidents View -->
-                    <div v-if="currentView === 'incidents'">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2><i class="fas fa-exclamation-triangle text-danger"></i> Incidents</h2>
-                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#incidentModal">
-                                <i class="fas fa-plus"></i> New Incident
-                            </button>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-body">
-                                <div v-if="loading" class="text-center">
-                                    <div class="loading"></div>
-                                </div>
-                                <table v-else class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Location</th>
-                                            <th>Drone Type</th>
-                                            <th>Source</th>
-                                            <th>Purpose</th>
-                                            <th>Confidence</th>
-                                            <th>Detail</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="incident in incidents" :key="incident.id">
-                                            <td>{{ formatDate(incident.sighting_date) }}</td>
-                                            <td><strong>{{ getLocationName(incident.restricted_area_id) }}</strong></td>
-                                            <td>{{ incident.drone_description || 'N/A' }}</td>
-                                            <td>
-                                                <span class="badge badge-secondary cursor-pointer" @click="viewSourceDetail(incident.source)" style="cursor: pointer;">
-                                                    {{ incident.source }} <i class="fas fa-info-circle ms-1"></i>
-                                                </span>
-                                            </td>
-                                            <td>{{ incident.purpose_assessment || 'Unknown' }}</td>
-                                            <td>{{ (incident.confidence_score * 100).toFixed(0) }}%</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-danger" @click="viewIncident(incident.id)">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     </div>
