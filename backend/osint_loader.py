@@ -247,7 +247,7 @@ def load_osint_data(db: Session):
                         restricted_area_id=area.id,
                         distance_to_restricted_m=0,
                         duration_minutes=parse_duration(row['flight_duration']),
-                        source='news',
+                        source=row['source_type'],
                         confidence_score=float(row.get('certainty_score', 3)) / 5.0,
                         title=f"Drone sighting at {row['location']} ({row['country']})",
                         description=row['description'],
