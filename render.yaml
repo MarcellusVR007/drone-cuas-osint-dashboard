@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     branch: main
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && rm -f data/drone_cuas.db data/drone_cuas.db-*
     startCommand: python app.py
     envVars:
       - key: PYTHON_VERSION
