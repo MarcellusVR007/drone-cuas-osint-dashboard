@@ -355,59 +355,28 @@ const app = createApp({
                                 <strong>Source & Verification</strong>
                             </div>
                             <div class="card-body">
-                                <p><strong>Primary Data Source:</strong> <span class="badge badge-info">${getSourceName(incident.source)}</span></p>
-                                <p><strong>Available Intelligence Sources:</strong></p>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-md-6">
-                                        <div class="list-group list-group-sm">
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-warning">🔹 Senhive (Drone Detection)</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-info">📺 BBC Monitoring (OSINT)</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-success">🏛️ Janes Intelligence (Military DB)</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-primary">📰 Reuters News</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-danger">✈️ Military Aviation Forums</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-warning">📡 ADS-B Exchange</small>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="list-group list-group-sm">
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-success">🇳🇱 Dutch Military Intelligence</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-success">🇧🇪 Belgian Military Intelligence</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-info">🔁 Twitter/X OSINT</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-warning">🛫 FlightRadar24</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-muted">🌐 NATO Early Warning</small>
-                                            </span>
-                                            <span class="list-group-item bg-dark border-secondary py-1">
-                                                <small class="text-secondary">👥 Citizen Submissions</small>
-                                            </span>
+                                <div class="mb-3">
+                                    <h6><strong>Primary Reporting Source</strong></h6>
+                                    <div class="card bg-dark border-info mb-2">
+                                        <div class="card-body py-2">
+                                            <p class="mb-1"><strong>${getSourceName(incident.source)}</strong></p>
+                                            ${incident.source_url ?
+                                                `<a href="${incident.source_url}" target="_blank" class="btn btn-sm btn-outline-info">🔗 View Original Report</a>`
+                                                : '<small class="text-muted">No source URL available</small>'}
+                                            <div class="mt-2">
+                                                <small class="text-muted">Confidence: <strong>${(incident.confidence_score * 100).toFixed(0)}%</strong></small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <hr class="bg-secondary">
+
                                 <p><strong>Suspected Operator:</strong> ${incident.suspected_operator || 'Unknown'}</p>
                                 <p><strong>Purpose Assessment:</strong> ${incident.purpose_assessment || 'Unknown'}</p>
-                                <p><strong>Altitude:</strong> ${incident.altitude_m} meters</p>
-                                <p><strong>Duration:</strong> ${incident.duration_minutes} minutes</p>
-                                <p><strong>Distance to Restricted Area:</strong> ${incident.distance_to_restricted_m} meters</p>
+                                <p><strong>Altitude:</strong> ${incident.altitude_m || 'Unknown'} meters</p>
+                                <p><strong>Duration:</strong> ${incident.duration_minutes || 'Unknown'} minutes</p>
+                                <p><strong>Distance to Restricted Area:</strong> ${incident.distance_to_restricted_m || 'Unknown'} meters</p>
                             </div>
                         </div>
                     </div>

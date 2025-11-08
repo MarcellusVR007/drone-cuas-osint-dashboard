@@ -79,6 +79,8 @@ class Incident(Base):
     # Incident details
     duration_minutes = Column(Integer)
     source = Column(String(50), nullable=False, index=True)  # news, authority, submission, intelligence
+    source_url = Column(String(500))  # Direct link to the reporting source/article
+    corroborating_sources = Column(Text)  # JSON list of additional sources confirming this incident
     confidence_score = Column(Float, default=0.5)  # 0-1, confidence in report accuracy
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
