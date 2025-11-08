@@ -86,6 +86,11 @@ class Incident(Base):
     description = Column(Text, nullable=False)
     details = Column(Text)
 
+    # Source credibility hierarchy - for OSINT source traceability
+    primary_source_name = Column(String(255))  # e.g., "Reuters", "Senhive API", "Military Aviation Forums"
+    primary_source_credibility = Column(Integer, default=5)  # 1-10 scale, higher = more credible
+    secondary_sources = Column(Text)  # JSON list: [{"name": "Watson", "url": "...", "credibility": 7}, ...]
+
     # Attribution / Investigation
     suspected_operator = Column(String(100))  # e.g., "Russian SVR", "Unknown civilian"
     purpose_assessment = Column(String(100))  # reconnaissance, disruption, intelligence, unknown

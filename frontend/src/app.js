@@ -356,17 +356,52 @@ const app = createApp({
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <h6><strong>Primary Reporting Source</strong></h6>
-                                    <div class="card bg-dark border-info mb-2">
-                                        <div class="card-body py-2">
-                                            <p class="mb-1"><strong>${getSourceName(incident.source)}</strong></p>
-                                            ${incident.source_url ?
-                                                `<a href="${incident.source_url}" target="_blank" class="btn btn-sm btn-outline-info">🔗 View Original Report</a>`
-                                                : '<small class="text-muted">No source URL available</small>'}
-                                            <div class="mt-2">
-                                                <small class="text-muted">Confidence: <strong>${(incident.confidence_score * 100).toFixed(0)}%</strong></small>
-                                            </div>
+                                    <h6><strong>Reporting Source Hierarchy</strong></h6>
+
+                                    <!-- Primary Source -->
+                                    <div class="card bg-dark border-success mb-2">
+                                        <div class="card-header bg-success text-dark py-2">
+                                            <strong>📊 Primary Source</strong>
+                                            ${incident.primary_source_credibility ? `<span class="badge bg-warning text-dark float-end">Credibility: ${incident.primary_source_credibility}/10</span>` : ''}
                                         </div>
+                                        <div class="card-body py-2">
+                                            <p class="mb-1"><strong>${incident.primary_source_name || getSourceName(incident.source)}</strong></p>
+                                            ${incident.source_url ?
+                                                `<a href="${incident.source_url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">🔗 View Original Report</a>`
+                                                : '<small class="text-muted">No source URL available</small>'}
+                                        </div>
+                                    </div>
+
+                                    <!-- Secondary Sources if available -->
+                                    ${(() => {
+                                        try {
+                                            const secondarySources = incident.secondary_sources ? JSON.parse(incident.secondary_sources) : [];
+                                            if (secondarySources.length > 0) {
+                                                return `
+                                                    <div class="card bg-dark border-info mb-2">
+                                                        <div class="card-header bg-info text-dark py-2">
+                                                            <strong>📰 Also Reported By</strong>
+                                                        </div>
+                                                        <div class="card-body py-2">
+                                                            ${secondarySources.map(source => `
+                                                                <div class="mb-2">
+                                                                    <p class="mb-1"><small>${source.name || 'Unknown'}</small></p>
+                                                                    ${source.url ? `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info">View</a>` : ''}
+                                                                    ${source.credibility ? `<span class="badge bg-secondary">Credibility: ${source.credibility}/10</span>` : ''}
+                                                                </div>
+                                                            `).join('')}
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }
+                                            return '';
+                                        } catch (e) {
+                                            return '';
+                                        }
+                                    })()}
+
+                                    <div class="mt-2">
+                                        <small class="text-muted">Report Confidence: <strong>${(incident.confidence_score * 100).toFixed(0)}%</strong></small>
                                     </div>
                                 </div>
 

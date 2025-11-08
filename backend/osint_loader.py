@@ -231,6 +231,15 @@ def load_osint_data(db: Session):
                     # Infer purpose from description
                     purpose = infer_purpose(row['description'], row['location_type'], row['location'])
 
+                    # Parse source credibility hierarchy
+                    primary_source_name = row.get('primary_source_name', row['source_type'])
+                    primary_source_cred = int(row.get('primary_source_credibility', 5))
+
+                    # Parse secondary sources JSON if provided
+                    secondary_sources_json = row.get('secondary_sources_json', '[]')
+                    if not secondary_sources_json:
+                        secondary_sources_json = '[]'
+
                     # Create incident
                     incident = Incident(
                         sighting_date=incident_date,
@@ -255,7 +264,10 @@ def load_osint_data(db: Session):
                         description=row['description'],
                         details=f"Source: {row['source_url']}",
                         suspected_operator='Unknown',
-                        purpose_assessment=purpose
+                        purpose_assessment=purpose,
+                        primary_source_name=primary_source_name,
+                        primary_source_credibility=primary_source_cred,
+                        secondary_sources=secondary_sources_json
                     )
 
                     db.add(incident)
