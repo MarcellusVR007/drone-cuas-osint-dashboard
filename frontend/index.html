@@ -502,8 +502,8 @@
                                                     <td><strong>{{ getLocationName(incident.restricted_area_id) }}</strong></td>
                                                     <td>{{ incident.drone_description || 'N/A' }}</td>
                                                     <td>
-                                                        <span class="badge badge-secondary cursor-pointer" @click="viewSourceDetail(incident.source)" style="cursor: pointer;">
-                                                            {{ incident.source }} <i class="fas fa-info-circle ms-1"></i>
+                                                        <span class="badge badge-secondary cursor-pointer" @click="viewSourceDetail(incident.display_source)" style="cursor: pointer;">
+                                                            {{ incident.display_source }} <i class="fas fa-info-circle ms-1"></i>
                                                         </span>
                                                     </td>
                                                     <td>{{ incident.purpose_assessment || 'Unknown' }}</td>

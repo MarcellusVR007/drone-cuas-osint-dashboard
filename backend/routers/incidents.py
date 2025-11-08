@@ -6,8 +6,33 @@ from pydantic import BaseModel
 from typing import Optional, List
 from backend.database import get_db
 from backend.models import Incident, RestrictedArea, DroneType
+import json
 
 router = APIRouter()
+
+def get_display_source(incident: Incident) -> str:
+    """
+    Determine which source to display, prioritizing Senhive as primary sensor.
+    If Senhive is in secondary sources, use it. Otherwise use the main source.
+    """
+    # Check if Senhive is in secondary sources
+    if incident.secondary_sources:
+        try:
+            sources = json.loads(incident.secondary_sources) if isinstance(incident.secondary_sources, str) else incident.secondary_sources
+            if isinstance(sources, list):
+                for src in sources:
+                    if isinstance(src, dict) and 'name' in src:
+                        if 'Senhive' in src['name'] or 'senhive' in src.get('name', '').lower():
+                            return 'senhive'
+        except:
+            pass
+
+    # Check if Senhive is in primary source name
+    if incident.primary_source_name and 'Senhive' in incident.primary_source_name:
+        return 'senhive'
+
+    # Otherwise return the main source
+    return incident.source
 
 class IncidentCreate(BaseModel):
     sighting_date: date
@@ -63,6 +88,7 @@ class IncidentResponse(BaseModel):
     distance_to_restricted_m: Optional[int]
     duration_minutes: Optional[int]
     source: str
+    display_source: str  # Primary source to display (Senhive prioritized)
     confidence_score: float
     title: str
     description: str
@@ -116,11 +142,41 @@ async def list_incidents(
     total = query.count()
     incidents = query.offset(skip).limit(limit).all()
 
+    # Add display_source to each incident
+    incident_list = []
+    for incident in incidents:
+        incident_dict = {
+            "id": incident.id,
+            "sighting_date": incident.sighting_date,
+            "sighting_time": incident.sighting_time,
+            "latitude": incident.latitude,
+            "longitude": incident.longitude,
+            "altitude_m": incident.altitude_m,
+            "drone_description": incident.drone_description,
+            "drone_characteristics": incident.drone_characteristics,
+            "drone_characteristics_sources": incident.drone_characteristics_sources,
+            "distance_to_restricted_m": incident.distance_to_restricted_m,
+            "duration_minutes": incident.duration_minutes,
+            "source": incident.source,
+            "display_source": get_display_source(incident),  # Primary source to show
+            "confidence_score": incident.confidence_score,
+            "title": incident.title,
+            "description": incident.description,
+            "suspected_operator": incident.suspected_operator,
+            "purpose_assessment": incident.purpose_assessment,
+            "identification_method": incident.identification_method,
+            "identification_confidence": incident.identification_confidence,
+            "identification_evidence": incident.identification_evidence,
+            "identified_by": incident.identified_by,
+            "report_date": incident.report_date,
+        }
+        incident_list.append(incident_dict)
+
     return {
         "total": total,
         "skip": skip,
         "limit": limit,
-        "incidents": incidents
+        "incidents": incident_list
     }
 
 @router.get("/{incident_id}")
