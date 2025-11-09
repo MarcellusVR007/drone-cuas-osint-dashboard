@@ -76,6 +76,7 @@ Press `Ctrl+C` to stop the server.
 ### API Endpoints
 
 **General**
+- `GET /health` - Lightweight uptime/keep-alive check
 - `GET /api/health` - Health check
 - `GET /api/stats` - Dashboard statistics
 
@@ -385,6 +386,26 @@ Delete `data/drone_cuas.db` - it will recreate on next run
 ### API not accessible
 Verify backend is running: `GET http://127.0.0.1:8000/api/health`
 Check browser console for CORS errors (shouldn't have any, frontend served from backend)
+
+---
+
+## Render Deployment Notes
+
+- Deploy via `render.yaml`; the `RENDER` env var enables production settings automatically.
+- Render free-tier web services pause after ~15 minutes of inactivity. `app.py` now spawns a keep-alive thread that pings `RENDER_EXTERNAL_URL/health` every 9 minutes so long as that env var (or an override `KEEP_ALIVE_URL`) is present.
+- Adjust the interval by setting `KEEP_ALIVE_INTERVAL` (seconds) if you need a different cadence; leave the default if you're on the free plan to avoid unnecessary traffic.
+- If you prefer full control, disable the keep-alive by omitting both `RENDER_EXTERNAL_URL` and `KEEP_ALIVE_URL`, or switch to a paid Render plan where the service remains on without pings.
+- Continuous monitoring: `render.yaml` also defines a `drone-cuas-watchdog` worker that runs `watchdog_agent.py`. Configure `WATCHDOG_TARGET_URL` (defaults to the deployed `/health` route), `WATCHDOG_INTERVAL_SECONDS`, and optional `WATCHDOG_WEBHOOK_URL` to get alerts after repeated failures. Render logs for that worker show the live heartbeat.
+
+### Watchdog Agent Environment Variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `WATCHDOG_TARGET_URL` | required | Full URL to ping (typically `https://<service>.onrender.com/health`). |
+| `WATCHDOG_INTERVAL_SECONDS` | `180` | Interval between checks. Increase if you need fewer requests. |
+| `WATCHDOG_TIMEOUT_SECONDS` | `10` | Per-request timeout in seconds. |
+| `WATCHDOG_FAILURE_THRESHOLD` | `3` | Number of consecutive failures before the webhook fires. |
+| `WATCHDOG_WEBHOOK_URL` | unset | Optional webhook to POST alerts (JSON payload). |
 
 ---
 

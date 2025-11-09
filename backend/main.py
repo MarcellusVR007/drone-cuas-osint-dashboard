@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
@@ -62,6 +62,11 @@ if os.path.exists("frontend/src"):
     app.mount("/static", StaticFiles(directory="frontend/src"), name="static")
 
 # Serve frontend
+@app.get("/health", tags=["health"])
+async def health_check():
+    """Simple health endpoint for uptime checks."""
+    return JSONResponse({"status": "ok"})
+
 @app.get("/")
 async def serve_frontend():
     return FileResponse("frontend/index.html")
