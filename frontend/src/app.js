@@ -274,11 +274,18 @@ const app = createApp({
             }
         };
 
-        const viewIncident = (id) => {
-            const incident = incidents.value.find(i => i.id === id);
-            if (!incident) return;
+        const viewIncident = async (id) => {
+            // Fetch full incident details including source_url and secondary_sources
+            try {
+                const response = await fetch(`/api/incidents/${id}`);
+                const incident = await response.json();
+                if (!incident) return;
 
-            selectedIncident.value = incident;
+                selectedIncident.value = incident;
+            } catch (error) {
+                console.error('Error fetching incident details:', error);
+                return;
+            }
 
             // Build the HTML content for the modal
             const locationName = getLocationName(incident.restricted_area_id);
