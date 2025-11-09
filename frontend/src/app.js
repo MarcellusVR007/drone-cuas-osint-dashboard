@@ -276,9 +276,10 @@ const app = createApp({
 
         const viewIncident = async (id) => {
             // Fetch full incident details including source_url and secondary_sources
+            let incident;
             try {
                 const response = await fetch(`/api/incidents/${id}`);
-                const incident = await response.json();
+                incident = await response.json();
                 if (!incident) return;
 
                 selectedIncident.value = incident;
@@ -388,7 +389,7 @@ const app = createApp({
                                     <!-- Secondary Sources if available -->
                                     ${(() => {
                                         try {
-                                            const secondarySources = incident.secondary_sources ? JSON.parse(incident.secondary_sources) : [];
+                                            const secondarySources = Array.isArray(incident.secondary_sources) ? incident.secondary_sources : [];
                                             if (secondarySources.length > 0) {
                                                 return `
                                                     <div class="card bg-dark border-info mb-2">
