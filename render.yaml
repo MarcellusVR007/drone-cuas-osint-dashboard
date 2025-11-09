@@ -10,3 +10,29 @@ services:
     envVars:
       - key: RENDER
         value: true
+      - key: RENDER_EXTERNAL_URL
+        generateValue: true
+      - key: KEEP_ALIVE_INTERVAL
+        value: 540
+      - key: PYTHONUNBUFFERED
+        value: 1
+
+  - type: worker
+    name: drone-cuas-watchdog
+    env: python
+    region: frankfurt
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: python watchdog_agent.py
+    envVars:
+      - key: WATCHDOG_TARGET_URL
+        sync: false
+      - key: WATCHDOG_INTERVAL_SECONDS
+        value: 180
+      - key: WATCHDOG_TIMEOUT_SECONDS
+        value: 10
+      - key: WATCHDOG_FAILURE_THRESHOLD
+        value: 3
+      - key: PYTHONUNBUFFERED
+        value: 1
