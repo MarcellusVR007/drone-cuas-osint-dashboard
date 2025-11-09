@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pydantic import BaseModel
 from typing import Optional, List
 from backend.database import get_db
 from backend.models import Incident, RestrictedArea, DroneType
+from backend.trusted_sources import validate_source_url, is_source_blocked, get_trusted_sources_for_country
 import json
+import urllib.parse
 
 router = APIRouter()
 
@@ -49,6 +51,7 @@ class IncidentCreate(BaseModel):
     distance_to_restricted_m: Optional[int] = None
     duration_minutes: Optional[int] = None
     source: str
+    source_url: Optional[str] = None  # Direct link to source/article (will be validated)
     confidence_score: Optional[float] = 0.5
     title: str
     description: str
@@ -183,15 +186,240 @@ async def list_incidents(
 
 @router.get("/{incident_id}")
 async def get_incident(incident_id: int, db: Session = Depends(get_db)):
-    """Get incident details"""
+    """Get incident details with source validation"""
+    import requests
+
     incident = db.query(Incident).filter(Incident.id == incident_id).first()
     if not incident:
         raise HTTPException(status_code=404, detail="Incident not found")
-    return incident
+
+    # Prepare response with source validation
+    incident_data = {
+        "id": incident.id,
+        "sighting_date": incident.sighting_date,
+        "sighting_time": incident.sighting_time,
+        "latitude": incident.latitude,
+        "longitude": incident.longitude,
+        "altitude_m": incident.altitude_m,
+        "drone_description": incident.drone_description,
+        "drone_characteristics": incident.drone_characteristics,
+        "drone_characteristics_sources": incident.drone_characteristics_sources,
+        "restricted_area_id": incident.restricted_area_id,
+        "distance_to_restricted_m": incident.distance_to_restricted_m,
+        "duration_minutes": incident.duration_minutes,
+        "source": incident.source,
+        "source_url": incident.source_url,
+        "confidence_score": incident.confidence_score,
+        "title": incident.title,
+        "description": incident.description,
+        "details": incident.details,
+        "suspected_operator": incident.suspected_operator,
+        "purpose_assessment": incident.purpose_assessment,
+        "identification_method": incident.identification_method,
+        "identification_confidence": incident.identification_confidence,
+        "identification_evidence": incident.identification_evidence,
+        "identified_by": incident.identified_by,
+        "primary_source_name": incident.primary_source_name,
+        "primary_source_credibility": incident.primary_source_credibility,
+        "secondary_sources": json.loads(incident.secondary_sources) if incident.secondary_sources else [],
+        "display_source": get_display_source(incident),
+        "report_date": incident.report_date,
+        "created_at": incident.created_at,
+        "updated_at": incident.updated_at,
+    }
+
+    # Validate source URL if present
+    if incident.source_url:
+        try:
+            # Check if link is working
+            response = requests.head(incident.source_url, timeout=5, allow_redirects=True)
+            source_validation = {
+                "url": incident.source_url,
+                "working": response.status_code < 400,
+                "status_code": response.status_code,
+                "last_checked": datetime.utcnow().isoformat()
+            }
+
+            # Validate against trust framework
+            country_code = None
+            if incident.restricted_area_id:
+                area = db.query(RestrictedArea).filter(
+                    RestrictedArea.id == incident.restricted_area_id
+                ).first()
+                if area:
+                    country_code = area.country
+
+            trust_validation = validate_source_url(incident.source_url, country_code)
+            source_validation.update(trust_validation)
+
+        except requests.exceptions.Timeout:
+            source_validation = {
+                "url": incident.source_url,
+                "working": False,
+                "error": "TIMEOUT",
+                "status_code": -1,
+                "last_checked": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            source_validation = {
+                "url": incident.source_url,
+                "working": False,
+                "error": str(e),
+                "status_code": -1,
+                "last_checked": datetime.utcnow().isoformat()
+            }
+
+        incident_data["source_validation"] = source_validation
+
+    return incident_data
+
+
+@router.get("/{incident_id}/recommended-sources")
+async def get_recommended_sources(incident_id: int, db: Session = Depends(get_db)):
+    """
+    Get trusted local sources for this incident based on its location country.
+
+    For example:
+    - Incident at Dutch air base → Recommends De Volkskrant, NRC, NOS (Netherlands)
+    - Incident at Belgian airport → Recommends De Standaard, VRT, RTBF (Belgium)
+
+    This helps find news articles about the incident from credible local sources.
+    """
+    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    # Get the country from the restricted area
+    country_code = None
+    location_name = "Unknown Location"
+
+    if incident.restricted_area_id:
+        area = db.query(RestrictedArea).filter(
+            RestrictedArea.id == incident.restricted_area_id
+        ).first()
+        if area:
+            country_code = area.country
+            location_name = area.name
+
+    if not country_code:
+        raise HTTPException(
+            status_code=400,
+            detail="Incident location not linked to restricted area. Cannot recommend sources."
+        )
+
+    # Get all trusted sources for this country
+    all_sources = get_trusted_sources_for_country(country_code)
+
+    # Build search URLs for each source
+    search_term = urllib.parse.quote(incident.title)
+    recommended = []
+
+    for source in all_sources:
+        rec = {
+            "name": source['name'],
+            "url": source['url'],
+            "credibility": source['credibility'],
+        }
+
+        # Build Google News search for this incident
+        rec["google_news_search"] = f"https://news.google.com/search?q={search_term}"
+
+        recommended.append(rec)
+
+    # Sort by credibility (highest first)
+    recommended.sort(key=lambda x: x['credibility'], reverse=True)
+
+    return {
+        "incident_id": incident_id,
+        "incident_title": incident.title,
+        "location_country": country_code,
+        "location_name": location_name,
+        "recommended_sources": recommended,
+        "total_sources": len(recommended),
+        "search_tip": f"Use the Google News Search links to find articles about this incident in trusted {country_code} sources"
+    }
+
+
+@router.get("/{incident_id}/search-sources")
+async def search_incident_in_sources(incident_id: int, db: Session = Depends(get_db)):
+    """
+    Get search URLs for finding this incident in trusted local news sources.
+
+    Returns clickable search links for:
+    - Google News search
+    - Country-specific newspaper searches
+    - Government website searches
+    """
+    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    # Get country
+    country_code = None
+    if incident.restricted_area_id:
+        area = db.query(RestrictedArea).filter(
+            RestrictedArea.id == incident.restricted_area_id
+        ).first()
+        if area:
+            country_code = area.country
+
+    if not country_code:
+        raise HTTPException(status_code=400, detail="Location country not determined")
+
+    # Build search URLs
+    search_term = urllib.parse.quote(incident.title)
+    location_term = urllib.parse.quote(incident.title.split()[0])  # First word usually location
+
+    search_urls = {
+        "google_news": f"https://news.google.com/search?q={search_term}",
+        "google_search": f"https://www.google.com/search?q={search_term}+drone",
+    }
+
+    # Add country-specific searches
+    country_searches = {
+        'NL': {
+            "nos_news": f"https://nos.nl/zoeken/?q={search_term}",
+            "volkskrant": f"https://www.volkskrant.nl/search/{search_term}",
+            "nrc": f"https://www.nrc.nl/search/{search_term}",
+            "ad": f"https://www.ad.nl/search/{search_term}",
+        },
+        'BE': {
+            "vrt": f"https://www.vrt.be/vrtnws/nl/search/?q={search_term}",
+            "standaard": f"https://www.standaard.be/search/{search_term}",
+            "demorgen": f"https://www.demorgen.be/search/{search_term}",
+            "rtbf": f"https://www.rtbf.be/search/?q={search_term}",
+        },
+        'DE': {
+            "tagesschau": f"https://www.tagesschau.de/suche?q={search_term}",
+            "spiegel": f"https://www.spiegel.de/suche/?q={search_term}",
+            "dpa": f"https://www.dpa.com/search?query={search_term}",
+        },
+        'FR': {
+            "france24": f"https://www.france24.com/fr/search?q={search_term}",
+            "lemonde": f"https://www.lemonde.fr/recherche/?keywords={search_term}",
+            "afp": f"https://www.afp.com/search?query={search_term}",
+        },
+        'PL': {
+            "tvn24": f"https://www.tvn24.pl/?s={search_term}",
+            "onet": f"https://wiadomosci.onet.pl/?q={search_term}",
+        },
+    }
+
+    # Add country-specific URLs if available
+    if country_code in country_searches:
+        search_urls.update(country_searches[country_code])
+
+    return {
+        "incident_id": incident_id,
+        "incident_title": incident.title,
+        "country": country_code,
+        "search_urls": search_urls,
+        "instructions": "Click any URL to search for articles about this incident in trusted local sources"
+    }
 
 @router.post("/")
 async def create_incident(incident: IncidentCreate, db: Session = Depends(get_db)):
-    """Create new incident report"""
+    """Create new incident report with source URL validation"""
     try:
         # Verify drone type exists if provided
         if incident.drone_type_id:
@@ -202,12 +430,29 @@ async def create_incident(incident: IncidentCreate, db: Session = Depends(get_db
                 raise HTTPException(status_code=404, detail="Drone type not found")
 
         # Verify restricted area exists if provided
+        country_code = None
         if incident.restricted_area_id:
             area = db.query(RestrictedArea).filter(
                 RestrictedArea.id == incident.restricted_area_id
             ).first()
             if not area:
                 raise HTTPException(status_code=404, detail="Restricted area not found")
+            country_code = area.country
+
+        # Validate source URL if provided
+        if incident.source_url:
+            # Check if source is blocked
+            if is_source_blocked(incident.source_url):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Source URL is from a blocked source (non-EU or unreliable). Please use a trusted EU source."
+                )
+
+            # Validate against trust framework
+            validation = validate_source_url(incident.source_url, country_code)
+            if not validation["valid"]:
+                # Warn but don't block if source not in framework
+                print(f"⚠ Warning: Source URL not in trusted framework: {incident.source_url} - {validation['reason']}")
 
         db_incident = Incident(**incident.dict())
         db.add(db_incident)

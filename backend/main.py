@@ -47,10 +47,11 @@ async def startup():
     print("✓ OSINT CUAS Dashboard Ready")
 
 # Import and include routers
-from backend.routers import incidents, drone_types, restricted_areas, patterns, interventions, general, data_sources
+from backend.routers import incidents, drone_types, restricted_areas, patterns, interventions, general, data_sources, sources
 
 app.include_router(general.router, prefix="/api", tags=["general"])
 app.include_router(data_sources.router, prefix="/api/data-sources", tags=["data-sources"])
+app.include_router(sources.router, prefix="/api/sources", tags=["sources"])
 app.include_router(incidents.router, prefix="/api/incidents", tags=["incidents"])
 app.include_router(drone_types.router, prefix="/api/drone-types", tags=["drone-types"])
 app.include_router(restricted_areas.router, prefix="/api/restricted-areas", tags=["restricted-areas"])

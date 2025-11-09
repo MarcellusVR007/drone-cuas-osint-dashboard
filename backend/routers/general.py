@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta
@@ -17,8 +17,16 @@ async def health_check():
     }
 
 @router.get("/stats")
-async def get_stats(db: Session = Depends(get_db)):
-    """Get dashboard statistics"""
+async def get_stats(
+    db: Session = Depends(get_db),
+    days: int = Query(30, ge=7, le=365, description="Number of days for 'recent' stats (7-365)")
+):
+    """
+    Get dashboard statistics.
+
+    Args:
+        days: Time window for 'recent' incidents (default: 30, max: 365)
+    """
 
     # Total counts
     total_incidents = db.query(Incident).count()
@@ -27,10 +35,10 @@ async def get_stats(db: Session = Depends(get_db)):
     total_restricted_areas = db.query(RestrictedArea).count()
     total_drone_types = db.query(DroneType).count()
 
-    # Recent incidents (last 30 days)
-    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    # Recent incidents (configurable days)
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
     recent_incidents = db.query(Incident).filter(
-        Incident.report_date >= thirty_days_ago
+        Incident.report_date >= cutoff_date
     ).count()
 
     # Intervention success rate
@@ -75,9 +83,11 @@ async def get_stats(db: Session = Depends(get_db)):
 
     return {
         "timestamp": datetime.utcnow().isoformat(),
+        "time_window_days": days,
+        "cutoff_date": cutoff_date.isoformat(),
         "summary": {
             "total_incidents": total_incidents,
-            "recent_incidents_30d": recent_incidents,
+            f"recent_incidents_{days}d": recent_incidents,
             "total_interventions": total_interventions,
             "intervention_success_rate": round(intervention_success_rate, 1),
             "total_patterns": total_patterns,
