@@ -3,3 +3,7 @@ uvicorn[standard]==0.30.0
 sqlalchemy==2.0.35
 pydantic==2.9.0
 python-multipart==0.0.6
+requests==2.32.3
+feedparser==6.0.10
+beautifulsoup4==4.12.3
+textblob==0.17.1
