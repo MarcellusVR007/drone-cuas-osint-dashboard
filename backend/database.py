@@ -78,9 +78,11 @@ def import_json_data():
             cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
             existing_count = cursor.fetchone()[0]
 
+            # ALWAYS replace data from JSON export (delete old, import new)
             if existing_count > 0:
-                print(f"  ⚠️  {table_name} already has {existing_count} records, skipping")
-                continue
+                print(f"  🔄 {table_name} has {existing_count} old records, replacing with {len(rows)} from export...")
+                cursor.execute(f"DELETE FROM {table_name}")
+                conn.commit()
 
             # Get column names from first row
             columns = list(rows[0].keys())
