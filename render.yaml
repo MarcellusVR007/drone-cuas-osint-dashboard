@@ -5,8 +5,8 @@ services:
     region: frankfurt
     plan: free
     branch: main
-    buildCommand: pip install -r requirements.txt && rm -f data/drone_cuas.db data/drone_cuas.db-*
-    startCommand: python app.py
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash -lc "rm -f data/drone_cuas.db data/drone_cuas.db-* && python3 load_eu_incidents.py --csv-path backend/data/drone_incidents_eu.csv && python3 app.py"
     envVars:
       - key: RENDER
         value: true

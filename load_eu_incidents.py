@@ -5,8 +5,10 @@ Load EU drone incidents from CSV into the database
 import csv
 import os
 import sys
+from argparse import ArgumentParser
 from datetime import datetime, date
 from pathlib import Path
+from typing import Optional
 
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
@@ -154,7 +156,7 @@ def get_or_create_news_source(session):
     session.flush()
     return source
 
-def parse_csv_and_load(csv_path):
+def parse_csv_and_load(csv_path: Path):
     """Parse CSV and load incidents into database"""
     session = SessionLocal()
 
@@ -271,8 +273,49 @@ def parse_duration(duration_str):
 
     return None
 
-if __name__ == '__main__':
-    csv_path = '/Users/marcelruijken/MarLLM/OSINT DATA/drone_incidents_eu.csv'
+
+def resolve_csv_path(cli_path: Optional[str]) -> Path:
+    """Resolve CSV path from CLI arg, env var, or common defaults."""
+    if cli_path:
+        candidate = Path(cli_path).expanduser()
+        if candidate.exists():
+            return candidate
+        raise FileNotFoundError(f"Specified CSV not found: {candidate}")
+
+    env_path = os.environ.get("CUAS_INCIDENT_CSV") or os.environ.get("DRONE_CUAS_INCIDENT_CSV")
+    if env_path:
+        candidate = Path(env_path).expanduser()
+        if candidate.exists():
+            return candidate
+        raise FileNotFoundError(f"CSV from environment not found: {candidate}")
+
+    repo_root = Path(__file__).resolve().parent
+    candidates = [
+        repo_root / "backend" / "data" / "drone_incidents_eu.csv",
+        repo_root.parent / "OSINT DATA" / "drone_incidents_eu.csv",
+        Path("/Users/marcelruijken/MarLLM/OSINT DATA/drone_incidents_eu.csv"),
+    ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    raise FileNotFoundError(
+        "Unable to locate drone_incidents_eu.csv. "
+        "Pass --csv-path or set CUAS_INCIDENT_CSV."
+    )
+
+
+def main():
+    parser = ArgumentParser(description="Load EU drone incidents into the local database.")
+    parser.add_argument(
+        "--csv-path",
+        dest="csv_path",
+        help="Path to drone_incidents_eu.csv (defaults to backend/data/drone_incidents_eu.csv)",
+    )
+    args = parser.parse_args()
+
+    csv_path = resolve_csv_path(args.csv_path)
 
     print("\n📊 Loading EU OSINT drone incidents...")
     print(f"📂 CSV: {csv_path}\n")
@@ -283,3 +326,7 @@ if __name__ == '__main__':
     print("✅ Database tables created\n")
 
     parse_csv_and_load(csv_path)
+
+
+if __name__ == '__main__':
+    main()

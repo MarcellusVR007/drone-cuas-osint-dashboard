@@ -23,12 +23,18 @@ wheels/
 .installed.cfg
 *.egg
 
-# SQLite database
+# SQLite database (excluded from git)
 data/drone_cuas.db
 data/*.db
 data/*.db-shm
 data/*.db-wal
+
+# But allow JSON exports for version control
+!data/database_export.json
+
+# Cache and scan reports
 .cache/
+data/scan_report_*.json
 
 # IDE
 .vscode/

@@ -46,11 +46,78 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     print("✓ Database initialized")
 
+def import_json_data():
+    """Import data from JSON export if available"""
+    import json
+    from pathlib import Path
+
+    export_path = Path(__file__).parent.parent / "data" / "database_export.json"
+
+    if not export_path.exists():
+        print("ℹ️  No JSON export found, skipping import")
+        return False
+
+    print(f"📥 Importing data from {export_path.name}")
+
+    # Use raw SQL connection for bulk import
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    try:
+        with open(export_path, 'r', encoding='utf-8') as f:
+            export_data = json.load(f)
+
+        tables = export_data.get("tables", {})
+
+        for table_name, rows in tables.items():
+            if not rows:
+                continue
+
+            # Get existing count
+            cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+            existing_count = cursor.fetchone()[0]
+
+            if existing_count > 0:
+                print(f"  ⚠️  {table_name} already has {existing_count} records, skipping")
+                continue
+
+            # Get column names from first row
+            columns = list(rows[0].keys())
+            placeholders = ','.join(['?' for _ in columns])
+            column_names = ','.join(columns)
+
+            # Insert all rows
+            insert_sql = f"INSERT INTO {table_name} ({column_names}) VALUES ({placeholders})"
+            for row in rows:
+                values = [row[col] for col in columns]
+                try:
+                    cursor.execute(insert_sql, values)
+                except sqlite3.IntegrityError:
+                    continue  # Skip duplicates
+
+            conn.commit()
+            print(f"  ✓ {table_name}: Imported {len(rows)} records")
+
+        print("✓ JSON import complete!")
+        return True
+
+    except Exception as e:
+        print(f"❌ Error importing JSON: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
 def seed_db():
     """Add initial sample data"""
     db = SessionLocal()
     try:
         from backend.models import RestrictedArea, DroneType, Incident
+
+        # First try to import from JSON export
+        if import_json_data():
+            return
 
         # Check if already seeded - if there are incidents, skip seeding
         if db.query(Incident).count() > 0:
