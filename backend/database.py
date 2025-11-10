@@ -53,6 +53,10 @@ def import_json_data():
 
     export_path = Path(__file__).parent.parent / "data" / "database_export.json"
 
+    print(f"🔍 Looking for JSON export at: {export_path}")
+    print(f"🔍 Path exists: {export_path.exists()}")
+    print(f"🔍 Absolute path: {export_path.absolute()}")
+
     if not export_path.exists():
         print("ℹ️  No JSON export found, skipping import")
         return False
