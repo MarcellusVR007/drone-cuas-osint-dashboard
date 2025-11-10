@@ -19,13 +19,13 @@ async def health_check():
 @router.get("/stats")
 async def get_stats(
     db: Session = Depends(get_db),
-    days: int = Query(30, ge=7, le=365, description="Number of days for 'recent' stats (7-365)")
+    days: int = Query(60, ge=7, le=365, description="Number of days for 'recent' stats (7-365)")
 ):
     """
     Get dashboard statistics.
 
     Args:
-        days: Time window for 'recent' incidents (default: 30, max: 365)
+        days: Time window for 'recent' incidents (default: 60, max: 365)
     """
 
     # Total counts

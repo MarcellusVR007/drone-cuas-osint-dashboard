@@ -157,17 +157,19 @@ def analyze_articles_for_new_incidents(articles: List[Dict]) -> List[Dict]:
     potential_incidents = []
 
     for article in articles:
-        # Check credibility
-        if article.get('source_credibility', 0) < 7:
+        # Check credibility (0.0 - 1.0 scale, require at least 0.6 = 60%)
+        if article.get('source_credibility', 0) < 0.6:
             continue
 
-        # Check if recent (within last 30 days)
+        # Check if recent (within last 60 days)
         pub_date = datetime.fromisoformat(article['publish_date'])
-        if (datetime.now() - pub_date).days > 30:
+        # Make datetime.now() timezone-aware if pub_date has timezone info
+        now = datetime.now(pub_date.tzinfo) if pub_date.tzinfo else datetime.now()
+        if (now - pub_date).days > 60:
             continue
 
         # Check sentiment (avoid sensationalist articles)
-        if article.get('bias', {}).get('sensationalist', False):
+        if article.get('bias', {}).get('sensational', 0) > 0.7:
             continue
 
         potential_incidents.append({

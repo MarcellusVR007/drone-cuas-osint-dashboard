@@ -23,6 +23,10 @@ const app = createApp({
         const selectedIncident = ref(null);
         const selectedSource = ref(null);
 
+        // Sort state
+        const sortColumn = ref('date');
+        const sortDirection = ref('desc');
+
         let map = null;
         let detailMap = null;
 
@@ -54,6 +58,19 @@ const app = createApp({
             return sourceMap[sourceCode] || sourceCode;
         };
 
+        // Helper functions (needed by sortIncidents)
+        const getLocationName = (restrictedAreaId) => {
+            if (!restrictedAreaId) return 'Unknown location';
+            const area = restrictedAreas.value.find(a => a.id === restrictedAreaId);
+            return area ? area.name : 'Unknown location';
+        };
+
+        const getCountryFromArea = (restrictedAreaId) => {
+            if (!restrictedAreaId) return 'N/A';
+            const area = restrictedAreas.value.find(a => a.id === restrictedAreaId);
+            return area ? area.country : 'N/A';
+        };
+
         // Methods
         const fetchStats = async () => {
             try {
@@ -66,38 +83,73 @@ const app = createApp({
         };
 
         const sortIncidents = (incidentsList) => {
-            // Extract country code from title (e.g., "...Airport (NL)" -> "NL")
-            const getCountryCode = (title) => {
-                if (title && title.includes('(') && title.includes(')')) {
-                    return title.substring(title.lastIndexOf('(') + 1, title.lastIndexOf(')')).trim();
+            const sorted = [...incidentsList].sort((a, b) => {
+                let valA, valB;
+                const direction = sortDirection.value === 'asc' ? 1 : -1;
+
+                switch (sortColumn.value) {
+                    case 'date':
+                        valA = new Date(a.sighting_date);
+                        valB = new Date(b.sighting_date);
+                        return (valA - valB) * direction;
+
+                    case 'location':
+                        valA = getLocationName(a.restricted_area_id).toLowerCase();
+                        valB = getLocationName(b.restricted_area_id).toLowerCase();
+                        return valA.localeCompare(valB) * direction;
+
+                    case 'country':
+                        valA = getCountryFromArea(a.restricted_area_id);
+                        valB = getCountryFromArea(b.restricted_area_id);
+                        return valA.localeCompare(valB) * direction;
+
+                    case 'drone':
+                        valA = (a.drone_description || 'N/A').toLowerCase();
+                        valB = (b.drone_description || 'N/A').toLowerCase();
+                        return valA.localeCompare(valB) * direction;
+
+                    case 'source':
+                        valA = (a.display_source || '').toLowerCase();
+                        valB = (b.display_source || '').toLowerCase();
+                        return valA.localeCompare(valB) * direction;
+
+                    case 'purpose':
+                        valA = (a.purpose_assessment || 'Unknown').toLowerCase();
+                        valB = (b.purpose_assessment || 'Unknown').toLowerCase();
+                        return valA.localeCompare(valB) * direction;
+
+                    case 'confidence':
+                        valA = a.confidence_score || 0;
+                        valB = b.confidence_score || 0;
+                        return (valA - valB) * direction;
+
+                    default:
+                        return 0;
                 }
-                return 'ZZ'; // Unknown countries last
-            };
-
-            // Priority: NL=0, BE=1, DE=2, rest=999
-            const countryPriority = {
-                'NL': 0,
-                'BE': 1,
-                'DE': 2
-            };
-
-            return [...incidentsList].sort((a, b) => {
-                const countryA = getCountryCode(a.title);
-                const countryB = getCountryCode(b.title);
-
-                const priorityA = countryPriority[countryA] ?? 999;
-                const priorityB = countryPriority[countryB] ?? 999;
-
-                // Sort by country priority first
-                if (priorityA !== priorityB) {
-                    return priorityA - priorityB;
-                }
-
-                // Same country: sort by date (most recent first)
-                const dateA = new Date(a.sighting_date);
-                const dateB = new Date(b.sighting_date);
-                return dateB - dateA;
             });
+
+            return sorted;
+        };
+
+        const sortBy = (column) => {
+            if (sortColumn.value === column) {
+                // Toggle direction
+                sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+            } else {
+                // New column, default to descending (most recent/highest first)
+                sortColumn.value = column;
+                sortDirection.value = 'desc';
+            }
+
+            // Re-sort incidents
+            incidents.value = sortIncidents(incidents.value);
+        };
+
+        const getSortClass = (column) => {
+            if (sortColumn.value === column) {
+                return sortDirection.value;
+            }
+            return '';
         };
 
         const fetchIncidents = async () => {
@@ -105,8 +157,20 @@ const app = createApp({
             try {
                 const response = await fetch('/api/incidents/?limit=100');
                 const data = await response.json();
-                // Sort incidents by country (NL, BE, DE) and then by date
-                incidents.value = sortIncidents(data.incidents || []);
+
+                // Filter: only last 60 days
+                const sixtyDaysAgo = new Date();
+                sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+                const recentIncidents = (data.incidents || []).filter(inc => {
+                    const incDate = new Date(inc.sighting_date);
+                    return incDate >= sixtyDaysAgo;
+                });
+
+                // Set default sort: most recent first
+                sortColumn.value = 'date';
+                sortDirection.value = 'desc';
+                incidents.value = sortIncidents(recentIncidents);
                 // Also fetch restricted areas for location name lookup
                 if (restrictedAreas.value.length === 0) {
                     await fetchRestrictedAreas();
@@ -199,12 +263,6 @@ const app = createApp({
                     console.error('Error showing source modal:', error);
                 }
             }, 150);
-        };
-
-        const getLocationName = (restrictedAreaId) => {
-            if (!restrictedAreaId) return 'Unknown location';
-            const area = restrictedAreas.value.find(a => a.id === restrictedAreaId);
-            return area ? area.name : 'Unknown location';
         };
 
         const fetchDroneTypes = async () => {
@@ -714,6 +772,8 @@ const app = createApp({
             interventionStats,
             selectedIncident,
             filteredIncidents,
+            sortColumn,
+            sortDirection,
             fetchStats,
             fetchIncidents,
             fetchDroneTypes,
@@ -726,8 +786,11 @@ const app = createApp({
             formatDate,
             getThreatColor,
             getLocationName,
+            getCountryFromArea,
             getSourceName,
             initDetailMap,
+            sortBy,
+            getSortClass,
             watch: () => {
                 // Manual watch implementation
                 const watchCurrentView = setInterval(() => {

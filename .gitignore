@@ -26,6 +26,9 @@ wheels/
 # SQLite database
 data/drone_cuas.db
 data/*.db
+data/*.db-shm
+data/*.db-wal
+.cache/
 
 # IDE
 .vscode/

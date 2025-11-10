@@ -167,6 +167,36 @@
             font-size: 0.85rem;
         }
 
+        .table thead th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding-right: 25px;
+        }
+
+        .table thead th.sortable:hover {
+            color: #ff6b7a;
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        .table thead th.sortable::after {
+            content: '⇅';
+            position: absolute;
+            right: 8px;
+            opacity: 0.3;
+            font-size: 0.9rem;
+        }
+
+        .table thead th.sortable.asc::after {
+            content: '↑';
+            opacity: 1;
+        }
+
+        .table thead th.sortable.desc::after {
+            content: '↓';
+            opacity: 1;
+        }
+
         .table tbody tr {
             border-bottom: 1px solid rgba(220, 53, 69, 0.1);
             transition: all 0.3s ease;
@@ -487,12 +517,13 @@
                                         <table v-else class="table">
                                             <thead>
                                                 <tr>
-                                                    <th>Date</th>
-                                                    <th>Location</th>
-                                                    <th>Drone Type</th>
-                                                    <th>Source</th>
-                                                    <th>Purpose</th>
-                                                    <th>Confidence</th>
+                                                    <th class="sortable" :class="getSortClass('date')" @click="sortBy('date')">Date</th>
+                                                    <th class="sortable" :class="getSortClass('location')" @click="sortBy('location')">Location</th>
+                                                    <th class="sortable" :class="getSortClass('country')" @click="sortBy('country')">Country</th>
+                                                    <th class="sortable" :class="getSortClass('drone')" @click="sortBy('drone')">Drone Type</th>
+                                                    <th class="sortable" :class="getSortClass('source')" @click="sortBy('source')">Source</th>
+                                                    <th class="sortable" :class="getSortClass('purpose')" @click="sortBy('purpose')">Purpose</th>
+                                                    <th class="sortable" :class="getSortClass('confidence')" @click="sortBy('confidence')">Confidence</th>
                                                     <th>Detail</th>
                                                 </tr>
                                             </thead>
@@ -500,6 +531,7 @@
                                                 <tr v-for="incident in incidents" :key="incident.id">
                                                     <td>{{ formatDate(incident.sighting_date) }}</td>
                                                     <td><strong>{{ getLocationName(incident.restricted_area_id) }}</strong></td>
+                                                    <td><span class="badge badge-info">{{ getCountryFromArea(incident.restricted_area_id) }}</span></td>
                                                     <td>{{ incident.drone_description || 'N/A' }}</td>
                                                     <td>
                                                         <span class="badge badge-secondary cursor-pointer" @click="viewSourceDetail(incident.display_source)" style="cursor: pointer;">

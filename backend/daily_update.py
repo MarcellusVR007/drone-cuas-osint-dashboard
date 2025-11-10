@@ -50,7 +50,7 @@ class DailyUpdateChecker:
 
         if recent:
             return recent.sighting_date
-        return datetime.utcnow().date() - timedelta(days=30)
+        return datetime.utcnow().date() - timedelta(days=60)
 
     def check_news_sources(self, db: Session) -> list:
         """

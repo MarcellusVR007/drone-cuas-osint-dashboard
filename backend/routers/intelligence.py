@@ -49,6 +49,51 @@ class IncidentCredibilityRequest(BaseModel):
     custom_description: Optional[str] = None
 
 
+@router.get("/articles/search")
+async def search_articles_by_keyword(
+    query: str = Query(..., min_length=3, alias="query"),
+    country: Optional[str] = "NL",
+    limit: int = Query(10, ge=1, le=50),
+    language: Optional[str] = "en"
+):
+    """
+    Search for articles by keyword.
+
+    Returns articles from trusted sources containing the keyword.
+    """
+    scraper = get_article_scraper()
+
+    articles = scraper.search_incident_articles(
+        incident_title=query,
+        country=country,
+        limit=limit,
+        use_cache=True
+    )
+
+    analyzer = get_sentiment_analyzer()
+    articles_with_analysis = []
+
+    for article in articles:
+        sentiment = analyzer.analyze_article(
+            title=article.title,
+            summary=article.summary,
+            language=article.language
+        )
+
+        article_dict = article.to_dict()
+        article_dict["sentiment"] = sentiment["sentiment"]
+        article_dict["bias"] = sentiment["bias"]
+        articles_with_analysis.append(article_dict)
+
+    return {
+        "query": query,
+        "country": country,
+        "articles_found": len(articles_with_analysis),
+        "articles": articles_with_analysis,
+        "search_date": datetime.utcnow().isoformat()
+    }
+
+
 @router.get("/articles/{incident_id}")
 async def get_incident_articles(
     incident_id: int,
@@ -254,50 +299,6 @@ async def assess_incident_credibility(request: IncidentCredibilityRequest, db: S
             "false_claims": len([v for v in credibility_assessment['verifications'] if v['status'] in ['false', 'mostly_false']]),
         },
         "analysis_date": datetime.utcnow().isoformat()
-    }
-
-
-@router.get("/articles/search")
-async def search_articles_by_keyword(
-    keyword: str = Query(..., min_length=3),
-    country: Optional[str] = "NL",
-    limit: int = Query(10, ge=1, le=50),
-    language: Optional[str] = "en"
-):
-    """
-    Search for articles by keyword.
-
-    Returns articles from trusted sources containing the keyword.
-    """
-    scraper = get_article_scraper()
-
-    articles = scraper.search_incident_articles(
-        incident_title=keyword,
-        country=country,
-        limit=limit,
-        use_cache=True
-    )
-
-    analyzer = get_sentiment_analyzer()
-    articles_with_analysis = []
-
-    for article in articles:
-        sentiment = analyzer.analyze_article(
-            title=article.title,
-            summary=article.summary,
-            language=article.language
-        )
-
-        article_dict = article.to_dict()
-        article_dict["sentiment"] = sentiment["sentiment"]
-        articles_with_analysis.append(article_dict)
-
-    return {
-        "keyword": keyword,
-        "country": country,
-        "articles_found": len(articles_with_analysis),
-        "articles": articles_with_analysis,
-        "search_date": datetime.utcnow().isoformat()
     }
 
 
