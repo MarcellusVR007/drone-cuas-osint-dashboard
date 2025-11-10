@@ -28,17 +28,12 @@ async def startup():
     init_db()
     from backend.database import SessionLocal
     from backend.models import Incident
-    from backend.osint_loader import load_osint_data
     from backend.data_ingestion import initialize_data_sources
 
     db = SessionLocal()
     try:
-        # Load OSINT data from CSV if available
-        load_osint_data(db)
-
-        # Only seed if database is still empty
-        if db.query(Incident).count() == 0:
-            seed_db()
+        # Seed database (imports from JSON export if available)
+        seed_db()
 
         # Initialize data sources
         initialize_data_sources(db)
