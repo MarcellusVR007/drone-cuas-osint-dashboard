@@ -1,5 +1,5 @@
 {
-  "export_timestamp": "2025-11-13T08:31:10.059718",
+  "export_timestamp": "2025-11-13T08:41:07.232676",
   "tables": {
     "restricted_areas": [
       {
@@ -2783,6 +2783,41 @@
         "pattern_id": null,
         "created_at": "2025-11-10 07:37:33.792272",
         "updated_at": "2025-11-10 07:37:33.792273"
+      },
+      {
+        "id": 189,
+        "sighting_date": "2025-11-08",
+        "sighting_time": null,
+        "report_date": "2025-11-13 07:40:40",
+        "latitude": 50.9449,
+        "longitude": 5.9694,
+        "altitude_m": null,
+        "drone_type_id": null,
+        "drone_description": "Large professional drones",
+        "drone_characteristics": null,
+        "drone_characteristics_sources": null,
+        "identification_method": null,
+        "identification_confidence": null,
+        "identification_evidence": null,
+        "identified_by": null,
+        "restricted_area_id": null,
+        "distance_to_restricted_m": null,
+        "duration_minutes": null,
+        "source": "news",
+        "source_url": "https://www.nu.nl/binnenland/6375581/",
+        "corroborating_sources": null,
+        "confidence_score": 0.9,
+        "title": "Multiple drones over South Limburg - NATO JFC Brunssum & Maastricht Airport",
+        "description": "Meerdere grote professionele drones gespot boven Brunssum (NATO JFC commandocentrum) en Maastricht Aachen Airport. Politie zette helikopter in voor onderzoek.",
+        "details": "Police could not determine origin or landing location. Professional drones can be controlled from 30-50km away. Multiple civilian reports. Helicopter deployed for investigation.",
+        "primary_source_name": null,
+        "primary_source_credibility": null,
+        "secondary_sources": null,
+        "suspected_operator": "Unknown",
+        "purpose_assessment": "reconnaissance",
+        "pattern_id": null,
+        "created_at": null,
+        "updated_at": null
       }
     ],
     "interventions": []
