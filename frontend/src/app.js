@@ -28,6 +28,18 @@ const app = createApp({
         const threatAlerts = ref([]);
         const connectedIncidents = ref([]);
 
+        // Blockchain Intel state
+        const wallets = ref([]);
+        const transactionGraph = ref({ nodes: [], links: [] });
+        const exchangeConnections = ref([]);
+
+        // Forum Monitoring state
+        const monitoredForums = ref([]);
+        const suspiciousAccounts = ref([]);
+        const redFlagsByCategory = ref({});
+        const detectionSummary = ref({});
+        const showRedFlags = ref(false);
+
         // Sort state
         const sortColumn = ref('date');
         const sortDirection = ref('desc');
@@ -1062,7 +1074,7 @@ const app = createApp({
                 console.log('Fetching threat alerts...');
                 const response = await fetch('/api/socmint/threats/active');
                 const data = await response.json();
-                console.log('Threats received:', data.threats?.length || 0);
+                // API returns {threats: [...], total: N}
                 threatAlerts.value = data.threats || [];
                 console.log('Threats stored in Vue:', threatAlerts.value.length);
             } catch (error) {
@@ -1321,6 +1333,173 @@ const app = createApp({
             }
         };
 
+        // Blockchain Intel functions
+        const fetchWallets = async () => {
+            loading.value = true;
+            try {
+                const response = await fetch('/api/blockchain/wallets');
+                const data = await response.json();
+                wallets.value = data.wallets || [];
+            } catch (error) {
+                console.error('Error fetching wallets:', error);
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const fetchTransactionGraph = async () => {
+            try {
+                const response = await fetch('/api/blockchain/transaction-graph');
+                const data = await response.json();
+                transactionGraph.value = data;
+                renderTransactionGraph();
+            } catch (error) {
+                console.error('Error fetching transaction graph:', error);
+            }
+        };
+
+        const fetchExchangeConnections = async () => {
+            loading.value = true;
+            try {
+                const response = await fetch('/api/blockchain/exchange-connections');
+                const data = await response.json();
+                exchangeConnections.value = data.connections || [];
+            } catch (error) {
+                console.error('Error fetching exchange connections:', error);
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const renderTransactionGraph = () => {
+            try {
+                const graphData = transactionGraph.value;
+                if (!graphData.nodes || graphData.nodes.length === 0) {
+                    document.getElementById('transactionGraph').innerHTML = '<div class="alert alert-info m-3">No transaction data available</div>';
+                    return;
+                }
+
+                // Create nodes with colors based on entity type
+                const nodes = graphData.nodes.map(node => ({
+                    id: node.id,
+                    label: node.label,
+                    title: `${node.label}\nRisk: ${(node.risk_score * 100).toFixed(0)}%`,
+                    value: node.risk_score * 50, // Size based on risk
+                    color: {
+                        background: node.is_mixer ? '#ffc107' : node.is_exchange ? '#198754' : '#dc3545',
+                        border: '#fff',
+                        highlight: {
+                            background: '#ff6b7a',
+                            border: '#fff'
+                        }
+                    },
+                    font: { color: '#fff', size: 12 }
+                }));
+
+                // Create edges
+                const edges = graphData.links.map(link => ({
+                    from: link.from_wallet_id,
+                    to: link.to_wallet_id,
+                    label: `${link.total_amount} BTC`,
+                    title: `${link.transaction_count} transactions\n${link.relationship_type}`,
+                    arrows: 'to',
+                    color: {
+                        color: '#6c757d',
+                        highlight: '#ff6b7a'
+                    }
+                }));
+
+                const container = document.getElementById('transactionGraph');
+                const networkData = { nodes, edges };
+
+                const options = {
+                    nodes: {
+                        shape: 'dot',
+                        scaling: {
+                            min: 15,
+                            max: 40
+                        }
+                    },
+                    edges: {
+                        width: 2,
+                        smooth: { type: 'cubicBezier' }
+                    },
+                    physics: {
+                        stabilization: true,
+                        barnesHut: {
+                            gravitationalConstant: -15000,
+                            springLength: 200
+                        }
+                    },
+                    interaction: {
+                        hover: true,
+                        tooltipDelay: 100
+                    }
+                };
+
+                new vis.Network(container, networkData, options);
+            } catch (error) {
+                console.error('Error rendering transaction graph:', error);
+            }
+        };
+
+        const viewWallet = (walletId) => {
+            console.log('View wallet:', walletId);
+            // TODO: Implement wallet detail modal
+        };
+
+        // Forum Monitoring functions
+        const fetchMonitoredForums = async () => {
+            loading.value = true;
+            try {
+                const response = await fetch('/api/forums/monitored-forums');
+                const data = await response.json();
+                monitoredForums.value = data.forums || [];
+            } catch (error) {
+                console.error('Error fetching monitored forums:', error);
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const fetchSuspiciousAccounts = async () => {
+            loading.value = true;
+            try {
+                const response = await fetch('/api/forums/suspicious-accounts?min_score=0.75');
+                const data = await response.json();
+                suspiciousAccounts.value = data.accounts || [];
+            } catch (error) {
+                console.error('Error fetching suspicious accounts:', error);
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const fetchRedFlags = async () => {
+            try {
+                const response = await fetch('/api/forums/red-flags');
+                const data = await response.json();
+                redFlagsByCategory.value = data.by_category || {};
+            } catch (error) {
+                console.error('Error fetching red flags:', error);
+            }
+        };
+
+        const fetchDetectionSummary = async () => {
+            try {
+                const response = await fetch('/api/forums/detection-summary');
+                const data = await response.json();
+                detectionSummary.value = data;
+            } catch (error) {
+                console.error('Error fetching detection summary:', error);
+            }
+        };
+
+        const getLEAReferralCount = () => {
+            if (!suspiciousAccounts.value) return 0;
+            return suspiciousAccounts.value.filter(acc => acc.investigation_status === 'LEA_REFERRAL').length;
+        };
+
         // Lifecycle - Combined onMounted
         onMounted(async () => {
             // Load initial data
@@ -1375,6 +1554,25 @@ const app = createApp({
             fetchConnectedIncidents,
             viewActor,
             renderActorNetwork,
+            // Blockchain Intel
+            wallets,
+            transactionGraph,
+            exchangeConnections,
+            fetchWallets,
+            fetchTransactionGraph,
+            fetchExchangeConnections,
+            viewWallet,
+            // Forum Monitoring
+            monitoredForums,
+            suspiciousAccounts,
+            redFlagsByCategory,
+            detectionSummary,
+            showRedFlags,
+            fetchMonitoredForums,
+            fetchSuspiciousAccounts,
+            fetchRedFlags,
+            fetchDetectionSummary,
+            getLEAReferralCount,
             sortBy,
             getSortClass,
             watch: () => {
@@ -1405,6 +1603,17 @@ const app = createApp({
                 this.fetchThreatAlerts();
                 this.fetchConnectedIncidents();
                 setTimeout(() => this.renderActorNetwork(), 500);
+            } else if (newView === 'blockchain') {
+                // Load Blockchain Intel data
+                this.fetchWallets();
+                this.fetchExchangeConnections();
+                setTimeout(() => this.fetchTransactionGraph(), 300);
+            } else if (newView === 'forums') {
+                // Load Forum Monitoring data
+                this.fetchMonitoredForums();
+                this.fetchSuspiciousAccounts();
+                this.fetchRedFlags();
+                this.fetchDetectionSummary();
             }
         }
     }

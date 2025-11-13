@@ -488,6 +488,12 @@
                     <div class="sidebar-item" @click="currentView = 'threat-intel'" :class="{active: currentView === 'threat-intel'}">
                         <i class="fas fa-user-secret"></i> Threat Intel
                     </div>
+                    <div class="sidebar-item" @click="currentView = 'blockchain'" :class="{active: currentView === 'blockchain'}">
+                        <i class="fas fa-bitcoin"></i> Blockchain Intel
+                    </div>
+                    <div class="sidebar-item" @click="currentView = 'forums'" :class="{active: currentView === 'forums'}">
+                        <i class="fas fa-comments"></i> Forum Monitoring
+                    </div>
                     <div class="sidebar-item" @click="currentView = 'interventions'" :class="{active: currentView === 'interventions'}">
                         <i class="fas fa-shield-virus"></i> Interventions
                     </div>
@@ -835,6 +841,294 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Blockchain Intel View -->
+                    <div v-if="currentView === 'blockchain'">
+                        <h2 class="mb-4"><i class="fas fa-bitcoin text-danger"></i> Blockchain Intelligence</h2>
+
+                        <div class="row mb-4">
+                            <!-- Wallet Profiles Table -->
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-wallet"></i> Wallet Profiles (Risk Scores)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-if="loading" class="text-center"><div class="loading"></div></div>
+                                        <div v-else>
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Label</th>
+                                                        <th>Type</th>
+                                                        <th>Risk</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="wallet in wallets" :key="wallet.id" :class="wallet.risk_score > 0.8 ? 'table-danger' : ''">
+                                                        <td>
+                                                            <strong>{{ wallet.label }}</strong><br>
+                                                            <small class="text-muted">{{ wallet.address.substring(0, 20) }}...</small>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge" :class="wallet.entity_type === 'threat_actor' ? 'badge-danger' : wallet.entity_type === 'operative' ? 'badge-warning' : 'badge-secondary'">
+                                                                {{ wallet.entity_type }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="progress" style="height: 20px;">
+                                                                <div class="progress-bar bg-danger" :style="`width: ${wallet.risk_score * 100}%`">
+                                                                    {{ (wallet.risk_score * 100).toFixed(0) }}%
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-danger" @click="viewWallet(wallet.id)">
+                                                                <i class="fas fa-eye"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Transaction Graph -->
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0"><i class="fas fa-project-diagram"></i> Transaction Graph</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="transactionGraph" style="height: 400px; border: 1px solid #dee2e6;"></div>
+                                        <small class="text-muted mt-2 d-block">
+                                            <i class="fas fa-info-circle"></i> Red nodes = threat actors | Yellow = mixers | Green = exchanges
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Exchange Connections (Law Enforcement) -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h5 class="mb-0"><i class="fas fa-gavel"></i> Exchange Connections - Law Enforcement Contacts</h5>
+                                        <small>KYC data available via legal request</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-if="loading" class="text-center"><div class="loading"></div></div>
+                                        <div v-else>
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Exchange</th>
+                                                        <th>Jurisdiction</th>
+                                                        <th>Volume (EUR)</th>
+                                                        <th>Law Enforcement Contact</th>
+                                                        <th>KYC Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="conn in exchangeConnections" :key="conn.id">
+                                                        <td><strong>{{ conn.exchange_name }}</strong></td>
+                                                        <td><span class="badge badge-info">{{ conn.jurisdiction }}</span></td>
+                                                        <td>€{{ conn.total_volume_eur?.toLocaleString() }}</td>
+                                                        <td>
+                                                            <div v-if="conn.law_enforcement_contact">
+                                                                <i class="fas fa-phone"></i> {{ conn.law_enforcement_contact }}<br>
+                                                                <i class="fas fa-envelope"></i> <small>{{ conn.law_enforcement_email }}</small>
+                                                            </div>
+                                                            <span v-else class="text-muted">N/A</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge" :class="conn.kyc_required ? 'badge-success' : 'badge-danger'">
+                                                                {{ conn.kyc_required ? 'KYC Available' : 'No KYC' }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Forum Monitoring View -->
+                    <div v-if="currentView === 'forums'">
+                        <h2 class="mb-4"><i class="fas fa-comments text-danger"></i> Forum Monitoring - Counter-Intelligence</h2>
+
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Counter-Intelligence:</strong> Detecting GRU-recruited spotters infiltrating aviation forums by reverse-engineering their OPSEC instructions
+                        </div>
+
+                        <div class="row mb-4">
+                            <!-- Suspicious Accounts -->
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-user-secret"></i> Suspicious Accounts (0.75+ Risk)</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-if="loading" class="text-center"><div class="loading"></div></div>
+                                        <div v-else>
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Username</th>
+                                                        <th>Forum</th>
+                                                        <th>Location</th>
+                                                        <th>Risk Score</th>
+                                                        <th>Red Flags</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="account in suspiciousAccounts" :key="account.id" :class="account.suspicious_score >= 0.8 ? 'table-danger' : ''">
+                                                        <td>
+                                                            <strong>{{ account.username }}</strong><br>
+                                                            <small class="text-muted">Joined: {{ formatDate(account.join_date) }}</small>
+                                                        </td>
+                                                        <td>{{ account.forum_name }}</td>
+                                                        <td>{{ account.reported_location || 'N/A' }}</td>
+                                                        <td>
+                                                            <div class="progress" style="height: 20px;">
+                                                                <div class="progress-bar bg-danger" :style="`width: ${account.suspicious_score * 100}%`">
+                                                                    {{ (account.suspicious_score * 100).toFixed(0) }}%
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-danger">{{ account.red_flags ? account.red_flags.split(',').length : 0 }} flags</span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge" :class="account.investigation_status === 'LEA_REFERRAL' ? 'badge-danger' : account.investigation_status === 'MONITORING' ? 'badge-warning' : 'badge-secondary'">
+                                                                {{ account.investigation_status?.replace('_', ' ') }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detection Summary -->
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Detection Summary</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-if="loading" class="text-center"><div class="loading"></div></div>
+                                        <div v-else>
+                                            <ul class="list-unstyled">
+                                                <li class="mb-2">
+                                                    <i class="fas fa-users text-danger"></i>
+                                                    <strong>Total Accounts:</strong> {{ detectionSummary?.total_accounts || 0 }}
+                                                </li>
+                                                <li class="mb-2">
+                                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                                    <strong>High Priority:</strong> {{ detectionSummary?.high_priority_count || 0 }}
+                                                </li>
+                                                <li class="mb-2">
+                                                    <i class="fas fa-gavel text-danger"></i>
+                                                    <strong>LEA Referrals:</strong> {{ getLEAReferralCount() }}
+                                                </li>
+                                                <li class="mb-2">
+                                                    <i class="fas fa-eye text-info"></i>
+                                                    <strong>Forums Monitored:</strong> {{ monitoredForums?.length || 0 }}
+                                                </li>
+                                                <li class="mb-2">
+                                                    <i class="fas fa-clock text-muted"></i>
+                                                    <strong>Recent Active:</strong> {{ detectionSummary?.recent_active_count || 0 }}
+                                                </li>
+                                            </ul>
+                                            <button class="btn btn-sm btn-danger w-100" @click="showRedFlags = !showRedFlags">
+                                                <i class="fas fa-flag"></i> View Red Flags Library
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monitored Forums -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0"><i class="fas fa-globe"></i> Monitored Aviation Forums</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-if="loading" class="text-center"><div class="loading"></div></div>
+                                        <div v-else>
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Forum Name</th>
+                                                        <th>Platform</th>
+                                                        <th>Focus Area</th>
+                                                        <th>Threat Level</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="forum in monitoredForums" :key="forum.id">
+                                                        <td><strong>{{ forum.name }}</strong></td>
+                                                        <td><span class="badge badge-secondary">{{ forum.platform }}</span></td>
+                                                        <td>{{ forum.focus_area }}</td>
+                                                        <td>
+                                                            <span class="badge" :class="forum.threat_level === 'CRITICAL' ? 'badge-danger' : forum.threat_level === 'HIGH' ? 'badge-warning' : 'badge-secondary'">
+                                                                {{ forum.threat_level }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-success">{{ forum.monitoring_status }}</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Red Flags Modal/Section -->
+                        <div v-if="showRedFlags" class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="fas fa-flag"></i> Behavioral Red Flags Library (15 Patterns)</h5>
+                                        <button class="btn btn-sm btn-outline-light float-end" @click="showRedFlags = false">
+                                            <i class="fas fa-times"></i> Close
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-for="(flagList, category) in redFlagsByCategory" :key="category" class="mb-4">
+                                            <h6 class="text-danger"><i class="fas fa-folder"></i> {{ category.toUpperCase().replace('_', ' ') }}</h6>
+                                            <ul>
+                                                <li v-for="flag in flagList" :key="flag.id" class="mb-2">
+                                                    <strong>{{ flag.flag_name }}</strong> (Weight: {{ flag.weight }})
+                                                    <br><small class="text-muted">{{ flag.description }}</small>
+                                                    <br><small class="text-info">Examples: {{ flag.examples }}</small>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
