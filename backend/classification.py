@@ -132,7 +132,7 @@ def classify_incident(
         classification = "STATE_ACTOR_PROFESSIONAL"
         confidence = confidence_professional
     elif confidence_amateur > 0.6:
-        classification = "BOUNTY_AMATEUR"
+        classification = "RECRUITED_LOCAL"
         confidence = confidence_amateur
     else:
         classification = "UNKNOWN"
@@ -220,9 +220,9 @@ def generate_attribution_chain(
                 "currency": telegram_correlation.get('payment_currency')
             },
             "operative": {
-                "profile": "RECRUITED_LOCAL" if classification == "BOUNTY_AMATEUR" else "PROFESSIONAL_OPERATOR",
+                "profile": "RECRUITED_LOCAL" if classification == "RECRUITED_LOCAL" else "PROFESSIONAL_OPERATOR",
                 "estimated_count": 1,
-                "motivation": "Financial (bounty)" if classification == "BOUNTY_AMATEUR" else "Ideological/Professional"
+                "motivation": "Financial (bounty)" if classification == "RECRUITED_LOCAL" else "Ideological/Professional"
             },
             "chain_strength": "STRONG"
         })

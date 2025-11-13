@@ -107,7 +107,7 @@ async def get_strategic_analysis(db: Session = Depends(get_db)):
     classified_incidents = [dict(row._mapping) for row in result]
 
     # Get state actor incidents (Orlan, military)
-    state_actors = [inc for inc in classified_incidents if inc['operational_class'] == 'STATE_ACTOR']
+    state_actors = [inc for inc in classified_incidents if inc['operational_class'] == 'STATE_ACTOR_PROFESSIONAL']
 
     # Get recruited local incidents (Telegram bounties)
     recruited_locals = [inc for inc in classified_incidents if inc['operational_class'] == 'RECRUITED_LOCAL']
@@ -162,7 +162,7 @@ async def get_orlan_analysis(db: Session = Depends(get_db)):
         FROM incidents i
         LEFT JOIN drone_types dt ON i.drone_type_id = dt.id
         LEFT JOIN restricted_areas ra ON i.restricted_area_id = ra.id
-        WHERE i.operational_class = 'STATE_ACTOR'
+        WHERE i.operational_class = 'STATE_ACTOR_PROFESSIONAL'
         ORDER BY i.sighting_date DESC
     """)
     result = db.execute(query)
