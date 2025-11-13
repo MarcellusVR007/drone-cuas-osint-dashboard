@@ -96,6 +96,28 @@ class Incident(Base):
     purpose_assessment = Column(String(100))  # reconnaissance, disruption, intelligence, unknown
     pattern_id = Column(Integer, ForeignKey("patterns.id"), nullable=True)
 
+    # Behavioral Indicators (for BOUNTY_AMATEUR vs STATE_ACTOR_PROFESSIONAL classification)
+    lights_observed = Column(Boolean, nullable=True)  # True=lights ON (amateur), False=lights OFF (professional), None=unknown
+    flight_pattern = Column(String(50), nullable=True)  # "erratic", "systematic", "hover", "perimeter_scan", "unknown"
+    time_of_day = Column(String(20), nullable=True)  # "dawn", "day", "dusk", "night", "unknown"
+    estimated_altitude_m = Column(Integer, nullable=True)  # Estimated altitude when altitude_m not precise
+    flight_behavior_notes = Column(Text, nullable=True)  # Free-text observations: "zigzag pattern", "hovering over entrance", etc.
+
+    # Operational Classification (auto-calculated from indicators)
+    operational_class = Column(String(50), nullable=True)  # "BOUNTY_AMATEUR", "STATE_ACTOR_PROFESSIONAL", "UNKNOWN"
+    classification_confidence = Column(Float, nullable=True)  # 0-1, confidence in classification
+    classification_reasoning = Column(Text, nullable=True)  # Explanation of classification
+
+    # Attribution Chain (linking to Telegram/SOCMINT)
+    telegram_post_id = Column(Integer, ForeignKey("social_media_posts.id"), nullable=True)  # Link to recruitment/bounty post
+    handler_username = Column(String(100), nullable=True)  # Telegram handler/recruiter username
+    payment_wallet_address = Column(String(100), nullable=True)  # Bitcoin wallet from Telegram post
+    attribution_chain = Column(Text, nullable=True)  # JSON: full chain from handler to operative
+
+    # Strategic Intelligence (for high-value incidents like Orlan-10)
+    strategic_assessment = Column(Text, nullable=True)  # Analysis of strategic implications
+    launch_analysis = Column(Text, nullable=True)  # Possible launch locations/methods
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -17,6 +17,8 @@ const app = createApp({
         const droneTypes = ref([]);
         const restrictedAreas = ref([]);
         const patterns = ref([]);
+        const strategicAnalysis = ref(null);
+        const counterMeasures = ref([]);
         const interventionEffectiveness = ref([]);
         const interventionStats = ref({});
         const dataSources = ref([]);
@@ -27,11 +29,6 @@ const app = createApp({
         const actors = ref([]);
         const threatAlerts = ref([]);
         const connectedIncidents = ref([]);
-
-        // Blockchain Intel state
-        const wallets = ref([]);
-        const transactionGraph = ref({ nodes: [], links: [] });
-        const exchangeConnections = ref([]);
 
         // Forum Monitoring state
         const monitoredForums = ref([]);
@@ -315,6 +312,26 @@ const app = createApp({
                 console.error('Error fetching patterns:', error);
             } finally {
                 loading.value = false;
+            }
+        };
+
+        const fetchStrategicAnalysis = async () => {
+            try {
+                const response = await fetch('/api/patterns/strategic-analysis');
+                const data = await response.json();
+                strategicAnalysis.value = data;
+            } catch (error) {
+                console.error('Error fetching strategic analysis:', error);
+            }
+        };
+
+        const fetchCounterMeasures = async () => {
+            try {
+                const response = await fetch('/api/patterns/counter-measures');
+                const data = await response.json();
+                counterMeasures.value = data.counter_measures || [];
+            } catch (error) {
+                console.error('Error fetching counter-measures:', error);
             }
         };
 
@@ -1333,119 +1350,26 @@ const app = createApp({
             }
         };
 
-        // Blockchain Intel functions
-        const fetchWallets = async () => {
-            loading.value = true;
-            try {
-                const response = await fetch('/api/blockchain/wallets');
-                const data = await response.json();
-                wallets.value = data.wallets || [];
-            } catch (error) {
-                console.error('Error fetching wallets:', error);
-            } finally {
-                loading.value = false;
-            }
-        };
-
-        const fetchTransactionGraph = async () => {
-            try {
-                const response = await fetch('/api/blockchain/transaction-graph');
-                const data = await response.json();
-                transactionGraph.value = data;
-                renderTransactionGraph();
-            } catch (error) {
-                console.error('Error fetching transaction graph:', error);
-            }
-        };
-
-        const fetchExchangeConnections = async () => {
-            loading.value = true;
-            try {
-                const response = await fetch('/api/blockchain/exchange-connections');
-                const data = await response.json();
-                exchangeConnections.value = data.connections || [];
-            } catch (error) {
-                console.error('Error fetching exchange connections:', error);
-            } finally {
-                loading.value = false;
-            }
-        };
-
-        const renderTransactionGraph = () => {
-            try {
-                const graphData = transactionGraph.value;
-                if (!graphData.nodes || graphData.nodes.length === 0) {
-                    document.getElementById('transactionGraph').innerHTML = '<div class="alert alert-info m-3">No transaction data available</div>';
-                    return;
+        // Blockchain Explorer Utility
+        const getBlockchainExplorerLinks = (address) => {
+            if (!address) return [];
+            return [
+                {
+                    name: 'Blockchain.com',
+                    url: `https://www.blockchain.com/btc/address/${address}`,
+                    icon: 'fa-link'
+                },
+                {
+                    name: 'Blockchair.com',
+                    url: `https://blockchair.com/bitcoin/address/${address}`,
+                    icon: 'fa-search'
+                },
+                {
+                    name: 'Mempool.space',
+                    url: `https://mempool.space/address/${address}`,
+                    icon: 'fa-chart-line'
                 }
-
-                // Create nodes with colors based on entity type
-                const nodes = graphData.nodes.map(node => ({
-                    id: node.id,
-                    label: node.label,
-                    title: `${node.label}\nRisk: ${(node.risk_score * 100).toFixed(0)}%`,
-                    value: node.risk_score * 50, // Size based on risk
-                    color: {
-                        background: node.is_mixer ? '#ffc107' : node.is_exchange ? '#198754' : '#dc3545',
-                        border: '#fff',
-                        highlight: {
-                            background: '#ff6b7a',
-                            border: '#fff'
-                        }
-                    },
-                    font: { color: '#fff', size: 12 }
-                }));
-
-                // Create edges
-                const edges = graphData.links.map(link => ({
-                    from: link.from_wallet_id,
-                    to: link.to_wallet_id,
-                    label: `${link.total_amount} BTC`,
-                    title: `${link.transaction_count} transactions\n${link.relationship_type}`,
-                    arrows: 'to',
-                    color: {
-                        color: '#6c757d',
-                        highlight: '#ff6b7a'
-                    }
-                }));
-
-                const container = document.getElementById('transactionGraph');
-                const networkData = { nodes, edges };
-
-                const options = {
-                    nodes: {
-                        shape: 'dot',
-                        scaling: {
-                            min: 15,
-                            max: 40
-                        }
-                    },
-                    edges: {
-                        width: 2,
-                        smooth: { type: 'cubicBezier' }
-                    },
-                    physics: {
-                        stabilization: true,
-                        barnesHut: {
-                            gravitationalConstant: -15000,
-                            springLength: 200
-                        }
-                    },
-                    interaction: {
-                        hover: true,
-                        tooltipDelay: 100
-                    }
-                };
-
-                new vis.Network(container, networkData, options);
-            } catch (error) {
-                console.error('Error rendering transaction graph:', error);
-            }
-        };
-
-        const viewWallet = (walletId) => {
-            console.log('View wallet:', walletId);
-            // TODO: Implement wallet detail modal
+            ];
         };
 
         // Forum Monitoring functions
@@ -1523,6 +1447,8 @@ const app = createApp({
             droneTypes,
             restrictedAreas,
             patterns,
+            strategicAnalysis,
+            counterMeasures,
             interventionEffectiveness,
             interventionStats,
             selectedIncident,
@@ -1534,6 +1460,8 @@ const app = createApp({
             fetchDroneTypes,
             fetchRestrictedAreas,
             fetchPatterns,
+            fetchStrategicAnalysis,
+            fetchCounterMeasures,
             fetchInterventions,
             viewIncident,
             viewPattern,
@@ -1554,14 +1482,7 @@ const app = createApp({
             fetchConnectedIncidents,
             viewActor,
             renderActorNetwork,
-            // Blockchain Intel
-            wallets,
-            transactionGraph,
-            exchangeConnections,
-            fetchWallets,
-            fetchTransactionGraph,
-            fetchExchangeConnections,
-            viewWallet,
+            getBlockchainExplorerLinks,
             // Forum Monitoring
             monitoredForums,
             suspiciousAccounts,

@@ -488,9 +488,6 @@
                     <div class="sidebar-item" @click="currentView = 'threat-intel'" :class="{active: currentView === 'threat-intel'}">
                         <i class="fas fa-user-secret"></i> Threat Intel
                     </div>
-                    <div class="sidebar-item" @click="currentView = 'blockchain'" :class="{active: currentView === 'blockchain'}">
-                        <i class="fas fa-bitcoin"></i> Blockchain Intel
-                    </div>
                     <div class="sidebar-item" @click="currentView = 'forums'" :class="{active: currentView === 'forums'}">
                         <i class="fas fa-comments"></i> Forum Monitoring
                     </div>
@@ -744,8 +741,82 @@
 
                     <!-- Patterns View -->
                     <div v-if="currentView === 'patterns'">
-                        <h2 class="mb-4"><i class="fas fa-network-wired text-danger"></i> Detected Patterns</h2>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="mb-0"><i class="fas fa-network-wired text-danger"></i> Strategic Pattern Analysis</h2>
+                            <button class="btn btn-primary" @click="fetchPatterns(); fetchStrategicAnalysis(); fetchCounterMeasures();">
+                                <i class="fas fa-sync"></i> Refresh Data
+                            </button>
+                        </div>
+
+                        <!-- Strategic Dashboard -->
+                        <div v-if="strategicAnalysis" class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card border-danger">
+                                    <div class="card-body text-center">
+                                        <div class="stat-number text-danger">{{ strategicAnalysis.state_actor_incidents?.length || 0 }}</div>
+                                        <div class="stat-label">🎖️ STATE ACTOR</div>
+                                        <small class="text-muted">Military operations (Orlan-10)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-warning">
+                                    <div class="card-body text-center">
+                                        <div class="stat-number text-warning">{{ strategicAnalysis.recruited_local_incidents?.length || 0 }}</div>
+                                        <div class="stat-label">💰 RECRUITED LOCAL</div>
+                                        <small class="text-muted">Bounty-driven spotters</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-info">
+                                    <div class="card-body text-center">
+                                        <div class="stat-number text-info">{{ strategicAnalysis.total_classified || 0 }}</div>
+                                        <div class="stat-label">TOTAL CLASSIFIED</div>
+                                        <small class="text-muted">Operational intelligence</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Classified Incidents -->
+                        <div v-if="strategicAnalysis && strategicAnalysis.all_classified_incidents" class="card mb-4">
+                            <div class="card-header bg-danger text-white">
+                                <h4 class="mb-0"><i class="fas fa-shield-alt"></i> Classified Incidents with Strategic Assessment</h4>
+                            </div>
+                            <div class="card-body">
+                                <div v-for="incident in strategicAnalysis.all_classified_incidents" :key="incident.id" class="alert mb-3" :class="incident.operational_class === 'STATE_ACTOR' ? 'alert-danger' : 'alert-warning'">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h5 class="alert-heading">
+                                                <span v-if="incident.operational_class === 'STATE_ACTOR'" class="badge bg-danger me-2">🎖️ STATE_ACTOR</span>
+                                                <span v-else-if="incident.operational_class === 'RECRUITED_LOCAL'" class="badge bg-warning text-dark me-2">💰 RECRUITED_LOCAL</span>
+                                                Incident #{{ incident.id }}: {{ incident.title }}
+                                            </h5>
+                                            <p><strong>Date:</strong> {{ new Date(incident.sighting_date).toLocaleDateString() }}</p>
+                                            <p><strong>Location:</strong> {{ incident.restricted_area_name || 'Unknown' }}</p>
+                                            <p><strong>Drone:</strong> {{ incident.drone_description || incident.drone_type_model || 'Unknown' }}</p>
+                                            <p v-if="incident.suspected_operator"><strong>Suspected Operator:</strong> {{ incident.suspected_operator }}</p>
+                                            <div v-if="incident.strategic_assessment" class="alert alert-dark mt-2 mb-2">
+                                                <strong>📋 Strategic Assessment:</strong><br>
+                                                {{ incident.strategic_assessment }}
+                                            </div>
+                                            <div v-if="incident.launch_analysis" class="alert alert-info mt-2">
+                                                <strong>🎯 Launch Analysis:</strong><br>
+                                                {{ incident.launch_analysis }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detected Patterns -->
                         <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h4 class="mb-0"><i class="fas fa-network-wired"></i> Detected Patterns</h4>
+                                <small>Spatial (location) and Temporal (time) correlations</small>
+                            </div>
                             <div class="card-body">
                                 <div v-if="loading" class="text-center">
                                     <div class="loading"></div>
@@ -767,7 +838,11 @@
                                         <tbody>
                                             <tr v-for="pattern in patterns" :key="pattern.id">
                                                 <td><strong>{{ pattern.name }}</strong></td>
-                                                <td><span class="badge badge-info">{{ pattern.pattern_type }}</span></td>
+                                                <td>
+                                                    <span v-if="pattern.pattern_type === 'spatial'" class="badge bg-primary">📍 Spatial (Location)</span>
+                                                    <span v-else-if="pattern.pattern_type === 'temporal'" class="badge bg-warning text-dark">⏰ Temporal (Time)</span>
+                                                    <span v-else class="badge bg-secondary">{{ pattern.pattern_type }}</span>
+                                                </td>
                                                 <td>{{ pattern.incident_count }}</td>
                                                 <td>{{ (pattern.confidence_score * 100).toFixed(0) }}%</td>
                                                 <td>{{ pattern.suspected_purpose || 'Unknown' }}</td>
@@ -841,124 +916,6 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Blockchain Intel View -->
-                    <div v-if="currentView === 'blockchain'">
-                        <h2 class="mb-4"><i class="fas fa-bitcoin text-danger"></i> Blockchain Intelligence</h2>
-
-                        <div class="row mb-4">
-                            <!-- Wallet Profiles Table -->
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-danger text-white">
-                                        <h5 class="mb-0"><i class="fas fa-wallet"></i> Wallet Profiles (Risk Scores)</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div v-if="loading" class="text-center"><div class="loading"></div></div>
-                                        <div v-else>
-                                            <table class="table table-sm">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Label</th>
-                                                        <th>Type</th>
-                                                        <th>Risk</th>
-                                                        <th>Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="wallet in wallets" :key="wallet.id" :class="wallet.risk_score > 0.8 ? 'table-danger' : ''">
-                                                        <td>
-                                                            <strong>{{ wallet.label }}</strong><br>
-                                                            <small class="text-muted">{{ wallet.address.substring(0, 20) }}...</small>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge" :class="wallet.entity_type === 'threat_actor' ? 'badge-danger' : wallet.entity_type === 'operative' ? 'badge-warning' : 'badge-secondary'">
-                                                                {{ wallet.entity_type }}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <div class="progress" style="height: 20px;">
-                                                                <div class="progress-bar bg-danger" :style="`width: ${wallet.risk_score * 100}%`">
-                                                                    {{ (wallet.risk_score * 100).toFixed(0) }}%
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <button class="btn btn-sm btn-outline-danger" @click="viewWallet(wallet.id)">
-                                                                <i class="fas fa-eye"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Transaction Graph -->
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-info text-white">
-                                        <h5 class="mb-0"><i class="fas fa-project-diagram"></i> Transaction Graph</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="transactionGraph" style="height: 400px; border: 1px solid #dee2e6;"></div>
-                                        <small class="text-muted mt-2 d-block">
-                                            <i class="fas fa-info-circle"></i> Red nodes = threat actors | Yellow = mixers | Green = exchanges
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Exchange Connections (Law Enforcement) -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="card border-warning">
-                                    <div class="card-header bg-warning text-dark">
-                                        <h5 class="mb-0"><i class="fas fa-gavel"></i> Exchange Connections - Law Enforcement Contacts</h5>
-                                        <small>KYC data available via legal request</small>
-                                    </div>
-                                    <div class="card-body">
-                                        <div v-if="loading" class="text-center"><div class="loading"></div></div>
-                                        <div v-else>
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Exchange</th>
-                                                        <th>Jurisdiction</th>
-                                                        <th>Volume (EUR)</th>
-                                                        <th>Law Enforcement Contact</th>
-                                                        <th>KYC Status</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="conn in exchangeConnections" :key="conn.id">
-                                                        <td><strong>{{ conn.exchange_name }}</strong></td>
-                                                        <td><span class="badge badge-info">{{ conn.jurisdiction }}</span></td>
-                                                        <td>€{{ conn.total_volume_eur?.toLocaleString() }}</td>
-                                                        <td>
-                                                            <div v-if="conn.law_enforcement_contact">
-                                                                <i class="fas fa-phone"></i> {{ conn.law_enforcement_contact }}<br>
-                                                                <i class="fas fa-envelope"></i> <small>{{ conn.law_enforcement_email }}</small>
-                                                            </div>
-                                                            <span v-else class="text-muted">N/A</span>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge" :class="conn.kyc_required ? 'badge-success' : 'badge-danger'">
-                                                                {{ conn.kyc_required ? 'KYC Available' : 'No KYC' }}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -1180,12 +1137,180 @@
                                                 <p><strong>Content:</strong> {{ alert.content }}</p>
                                                 <p><strong>Target:</strong> {{ alert.target_location }} ({{ alert.target_type }})</p>
                                                 <p><strong>Payment:</strong> {{ alert.payment_amount }} {{ alert.payment_currency }}</p>
-                                                <p v-if="alert.crypto_wallet_address"><strong>Wallet:</strong> <code>{{ alert.crypto_wallet_address }}</code></p>
+                                                <div v-if="alert.crypto_wallet_address" class="mb-2">
+                                                    <p class="mb-2"><strong>Wallet:</strong> <code>{{ alert.crypto_wallet_address }}</code></p>
+                                                    <p class="mb-1"><strong>Blockchain Explorers:</strong></p>
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <a v-for="explorer in getBlockchainExplorerLinks(alert.crypto_wallet_address)"
+                                                           :key="explorer.name"
+                                                           :href="explorer.url"
+                                                           target="_blank"
+                                                           rel="noopener noreferrer"
+                                                           class="btn btn-outline-primary">
+                                                            <i :class="`fas ${explorer.icon}`"></i> {{ explorer.name }}
+                                                        </a>
+                                                    </div>
+                                                </div>
                                                 <p><strong>Author:</strong> {{ alert.author_name }} ({{ alert.author_affiliation }})</p>
                                             </div>
                                             <div>
                                                 <span class="badge bg-danger">Risk: HIGH</span><br>
                                                 <span class="badge bg-warning text-dark mt-1">Credibility: {{ (alert.credibility_score * 100).toFixed(0) }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Deep Intelligence Analysis -->
+                        <div v-if="threatAlerts && threatAlerts.length > 0" class="card border-warning mb-4">
+                            <div class="card-header bg-warning text-dark">
+                                <h4 class="mb-0"><i class="fas fa-microscope"></i> 🔬 Deep Intelligence Analysis</h4>
+                                <small>Reverse-engineering operational requirements from Telegram posts</small>
+                            </div>
+                            <div class="card-body">
+                                <div v-for="alert in threatAlerts" :key="`analysis-${alert.id}`" class="mb-4">
+                                    <h5 class="text-danger">
+                                        <i class="fas fa-bullhorn"></i> {{ alert.platform }} - {{ alert.content_type.replace('_', ' ').toUpperCase() }}
+                                    </h5>
+
+                                    <div class="row">
+                                        <!-- Targets Requested -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-danger">
+                                                <div class="card-header bg-danger text-white">
+                                                    <strong>🎯 Target Intelligence Requirements</strong>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p><strong>Target Type:</strong> <span class="badge bg-danger">{{ alert.target_type }}</span></p>
+                                                    <p><strong>Location:</strong> {{ alert.target_location }}</p>
+                                                    <p v-if="alert.content.includes('Military aircraft movements')"><strong>Data Requested:</strong></p>
+                                                    <ul v-if="alert.content.includes('Military aircraft movements')">
+                                                        <li>Military aircraft types & tail numbers</li>
+                                                        <li>Government VIP flight times</li>
+                                                        <li>NATO supply cargo flights</li>
+                                                        <li>Defense contractor private jets</li>
+                                                        <li>Security measures & closures</li>
+                                                    </ul>
+                                                    <ul v-else-if="alert.content.includes('Photograph all entry/exit')">
+                                                        <li>Entry/exit points (8+ angles)</li>
+                                                        <li>Security checkpoint locations</li>
+                                                        <li>Shift change timing patterns</li>
+                                                        <li>Camera blind spots</li>
+                                                        <li>Emergency access routes</li>
+                                                        <li>Thermal imaging (high value)</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Payment Structure -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-success">
+                                                <div class="card-header bg-success text-white">
+                                                    <strong>💰 Payment & Incentive Structure</strong>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p><strong>Base Payment:</strong> {{ alert.payment_amount }} {{ alert.payment_currency }}</p>
+                                                    <div v-if="alert.content.includes('Initial payment')">
+                                                        <p><strong>Payment Model:</strong></p>
+                                                        <ul>
+                                                            <li>Initial: €500 (after first week)</li>
+                                                            <li>Weekly bonus: €100</li>
+                                                            <li>Final: €900 (30-day completion)</li>
+                                                            <li>Performance bonus: up to €500</li>
+                                                            <li><strong>Total Potential: €2000+</strong></li>
+                                                        </ul>
+                                                    </div>
+                                                    <div v-if="alert.content.includes('Phase 1 completed')">
+                                                        <p><strong>Phased Payments:</strong></p>
+                                                        <ul>
+                                                            <li>Phase 1 (external recon): $400 (40%)</li>
+                                                            <li>Phase 2 (aerial surveillance): $400 (40%)</li>
+                                                            <li>Phase 3 (personnel intel): $200 (20%)</li>
+                                                            <li>BONUS (thermal imaging): +$500</li>
+                                                        </ul>
+                                                    </div>
+                                                    <p v-if="alert.crypto_wallet_address" class="mb-0"><strong>Payment Method:</strong> <span class="badge bg-primary">Bitcoin</span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Equipment & OpSec -->
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-info">
+                                                <div class="card-header bg-info text-white">
+                                                    <strong>🛠️ Equipment Requirements</strong>
+                                                </div>
+                                                <div class="card-body">
+                                                    <ul v-if="alert.content.includes('EQUIPMENT NEEDED')">
+                                                        <li>Camera (phone OK, DSLR better)</li>
+                                                        <li>Binoculars / telephoto lens (200mm+)</li>
+                                                        <li>ADS-B receiver (optional, €200 bonus)</li>
+                                                        <li>Secure comms (Telegram + Signal)</li>
+                                                    </ul>
+                                                    <ul v-else-if="alert.content.includes('4K for photos')">
+                                                        <li>4K resolution photos minimum</li>
+                                                        <li>1080p video</li>
+                                                        <li>GPS coordinates in EXIF</li>
+                                                        <li>UTC+1 timestamps</li>
+                                                        <li>Drone with thermal imaging (high value)</li>
+                                                    </ul>
+                                                    <p v-else class="mb-0 text-muted">No specific equipment mentioned</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card border-dark">
+                                                <div class="card-header bg-dark text-white">
+                                                    <strong>🔒 OpSec Protocols Detected</strong>
+                                                </div>
+                                                <div class="card-body">
+                                                    <ul v-if="alert.content.includes('CRITICAL RULES')">
+                                                        <li class="text-danger"><strong>CRITICAL:</strong> No GPS in photos</li>
+                                                        <li>No social media posting</li>
+                                                        <li>Public WiFi only (not home)</li>
+                                                        <li>VPN mandatory</li>
+                                                        <li>Burner phone recommended</li>
+                                                        <li><strong>Cover Story:</strong> "Aviation photography hobby"</li>
+                                                    </ul>
+                                                    <ul v-else-if="alert.content.includes('VPN')">
+                                                        <li>VPN required (Mullvad/ProtonVPN)</li>
+                                                        <li>Burner phone ONLY</li>
+                                                        <li>Park 2km away, walk to position</li>
+                                                        <li>Dark clothing for concealment</li>
+                                                        <li><strong>If caught:</strong> "Just taking landscape photos"</li>
+                                                    </ul>
+                                                    <p v-else class="mb-0 text-muted">No specific OpSec mentioned</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Risk Assessment & Counter-Intel -->
+                                    <div class="alert alert-danger">
+                                        <h6 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Counter-Intelligence Assessment</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Threat Actor Profile:</strong></p>
+                                                <ul>
+                                                    <li>Author: {{ alert.author_name }}</li>
+                                                    <li>Affiliation: <span class="badge bg-danger">{{ alert.author_affiliation }}</span></li>
+                                                    <li>Credibility: {{ (alert.credibility_score * 100).toFixed(0) }}%</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Recommended Actions:</strong></p>
+                                                <ul>
+                                                    <li>🚨 Alert security at target location</li>
+                                                    <li>👁️ Enhanced surveillance of public viewing areas</li>
+                                                    <li>📡 Monitor for ADS-B receiver activity</li>
+                                                    <li>🎯 Law enforcement referral for recruitment monitoring</li>
+                                                </ul>
                                             </div>
                                         </div>
                                     </div>
