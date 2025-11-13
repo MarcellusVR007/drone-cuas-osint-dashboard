@@ -1,5 +1,5 @@
 {
-  "export_timestamp": "2025-11-10T13:15:51.186443",
+  "export_timestamp": "2025-11-13T08:31:10.059718",
   "tables": {
     "restricted_areas": [
       {
@@ -661,7 +661,18 @@
         "confidence_score": 0.7,
         "notes": null,
         "created_at": "2025-11-10 07:25:02.353774",
-        "updated_at": "2025-11-10 07:25:02.353779"
+        "updated_at": "2025-11-10 07:25:02.353779",
+        "threat_actor": "Russian Intelligence Services (GRU/SVR)",
+        "threat_actor_confidence": 0.75,
+        "geopolitical_context": "Critical Energy Infrastructure Reconnaissance Campaign (2024-2025)\n\nPart of systematic Russian hybrid warfare targeting German critical infrastructure. Brunsbüttel hosts:\n- Decommissioned nuclear power plant\n- Major LNG terminal (energy security target)\n- Chemical industrial complex\n\nTiming coincides with Ukraine war escalation and German military support to Ukraine.",
+        "official_statements_json": "[{\"source\": \"German Federal Prosecutor's Office (Flensburg)\", \"date\": \"2024-08-22\", \"statement\": \"Investigation launched on suspicion of espionage. Special services believe drones may have been launched by Russian agents from ships in the North Sea.\", \"credibility\": 9}, {\"source\": \"German Intelligence Assessment\", \"date\": \"2024-08\", \"statement\": \"Suspected Orlan-10 type UAVs with 500-600km range and 100 km/h speeds. Police drones failed to intercept. Multiple no-fly zone violations.\", \"credibility\": 8}]",
+        "expert_analysis_json": "[{\"expert\": \"Western Intelligence Services (cited)\", \"assessment\": \"Over 530 drone sightings over Germany in first three months of 2025. Pattern indicates systematic reconnaissance of critical infrastructure.\", \"confidence\": 0.8}]",
+        "strategic_intent": "Pre-positioning intelligence for potential sabotage operations. Mapping defensive responses and testing NATO reaction times.",
+        "modus_operandi": "High-speed drones (>100 km/h) launched from maritime platforms. Advanced counter-electronic warfare capabilities - resistant to jamming.",
+        "countermeasures_json": "{\"electronic_jamming\": \"Ineffective - drones show EW resistance\", \"police_pursuit\": \"Ineffective - drones too fast\", \"legal_framework\": \"Germany amended Aviation Security Act (Jan 2025) to authorize military shootdown\"}",
+        "related_campaigns_json": "[\"Ramstein Air Base surveillance (Dec 2024)\", \"German arms corridor mapping (2025)\"]",
+        "threat_level_justification": "CRITICAL - Nuclear facility + energy infrastructure + confirmed Russian intelligence interest + demonstrated capability gaps",
+        "intelligence_last_updated": "2025-11-13 07:30:52"
       },
       {
         "id": 2,
@@ -678,7 +689,18 @@
         "confidence_score": 0.7,
         "notes": null,
         "created_at": "2025-11-10 07:25:02.353779",
-        "updated_at": "2025-11-10 07:25:02.353780"
+        "updated_at": "2025-11-10 07:25:02.353780",
+        "threat_actor": "Russian Armed Forces / Intelligence (Belarus-based)",
+        "threat_actor_confidence": 0.85,
+        "geopolitical_context": "NATO Eastern Flank Probing Campaign (2024-2025)\n\nSystematic testing of NATO Article 5 thresholds and Baltic air defense capabilities:\n- Drones launched from Belarus territory\n- Targets include Vilnius Airport, Camp Reedo, Lithuanian airspace\n- Confirmed Russian-made 'Gerbera' drone crash (July 2025)\n\nPart of pre-positioning for Zapad 2025 military exercise.",
+        "official_statements_json": "[{\"source\": \"Lithuanian Armed Forces\", \"date\": \"2025-08\", \"statement\": \"Two Russian military drones launched from Belarus crashed into Lithuanian territory. Parliament passed bill authorizing armed forces to shoot down drones violating airspace.\", \"credibility\": 10}, {\"source\": \"NATO Secretary General Mark Rutte\", \"date\": \"2025-09\", \"statement\": \"Announced Eastern Sentry programme following multiple airspace violations by Russia. Aimed at deterring further incursions.\", \"credibility\": 10}, {\"source\": \"Lithuanian Intelligence Assessment\", \"date\": \"2025\", \"statement\": \"Drone incursions exposed glaring lack of readiness within Lithuanian Armed Forces to respond to such threats.\", \"credibility\": 8}]",
+        "expert_analysis_json": "[{\"expert\": \"CEPA (Center for European Policy Analysis)\", \"assessment\": \"Hybrid campaign to probe, destabilize, and prepare battlespace. Testing NATO defense mechanisms, monitoring response times, stirring public anxiety.\", \"confidence\": 0.8}, {\"expert\": \"Baltic Security Analysts\", \"assessment\": \"2024 balloon incursions followed by 2025 drone campaign suggests systematic testing progression.\", \"confidence\": 0.75}]",
+        "strategic_intent": "Testing NATO Article 5 response thresholds. Mapping air defense gaps. Psychological warfare to undermine Baltic public confidence in security.",
+        "modus_operandi": "Cross-border operations from Belarus sanctuary. Mixed success/failure operations (some crashes) suggest testing rather than pure reconnaissance.",
+        "countermeasures_json": "{\"detection\": \"Moderate - some incursions detected late\", \"attribution\": \"High - confirmed Russian origin via recovered hardware\", \"interdiction\": \"Low - authorization granted but limited technical capability\", \"NATO_response\": \"Increasing - Eastern Sentry programme activated\"}",
+        "related_campaigns_json": "[\"Poland 19-drone incursion (Sept 9-10, 2025)\", \"Romanian airspace violations\", \"Estonian violations\"]",
+        "threat_level_justification": "HIGH - NATO territory violations + confirmed Russian origin + systematic campaign + exposed defense gaps",
+        "intelligence_last_updated": "2025-11-13 07:30:52"
       },
       {
         "id": 3,
@@ -695,7 +717,18 @@
         "confidence_score": 0.7,
         "notes": null,
         "created_at": "2025-11-10 07:25:02.353781",
-        "updated_at": "2025-11-10 07:25:02.353781"
+        "updated_at": "2025-11-10 07:25:02.353781",
+        "threat_actor": "Russian Armed Forces / Intelligence (Belarus-based)",
+        "threat_actor_confidence": 0.85,
+        "geopolitical_context": "NATO Eastern Flank Probing Campaign (2024-2025)\n\nSystematic testing of NATO Article 5 thresholds and Baltic air defense capabilities:\n- Drones launched from Belarus territory\n- Targets include Vilnius Airport, Camp Reedo, Lithuanian airspace\n- Confirmed Russian-made 'Gerbera' drone crash (July 2025)\n\nPart of pre-positioning for Zapad 2025 military exercise.",
+        "official_statements_json": "[{\"source\": \"Lithuanian Armed Forces\", \"date\": \"2025-08\", \"statement\": \"Two Russian military drones launched from Belarus crashed into Lithuanian territory. Parliament passed bill authorizing armed forces to shoot down drones violating airspace.\", \"credibility\": 10}, {\"source\": \"NATO Secretary General Mark Rutte\", \"date\": \"2025-09\", \"statement\": \"Announced Eastern Sentry programme following multiple airspace violations by Russia. Aimed at deterring further incursions.\", \"credibility\": 10}, {\"source\": \"Lithuanian Intelligence Assessment\", \"date\": \"2025\", \"statement\": \"Drone incursions exposed glaring lack of readiness within Lithuanian Armed Forces to respond to such threats.\", \"credibility\": 8}]",
+        "expert_analysis_json": "[{\"expert\": \"CEPA (Center for European Policy Analysis)\", \"assessment\": \"Hybrid campaign to probe, destabilize, and prepare battlespace. Testing NATO defense mechanisms, monitoring response times, stirring public anxiety.\", \"confidence\": 0.8}, {\"expert\": \"Baltic Security Analysts\", \"assessment\": \"2024 balloon incursions followed by 2025 drone campaign suggests systematic testing progression.\", \"confidence\": 0.75}]",
+        "strategic_intent": "Testing NATO Article 5 response thresholds. Mapping air defense gaps. Psychological warfare to undermine Baltic public confidence in security.",
+        "modus_operandi": "Cross-border operations from Belarus sanctuary. Mixed success/failure operations (some crashes) suggest testing rather than pure reconnaissance.",
+        "countermeasures_json": "{\"detection\": \"Moderate - some incursions detected late\", \"attribution\": \"High - confirmed Russian origin via recovered hardware\", \"interdiction\": \"Low - authorization granted but limited technical capability\", \"NATO_response\": \"Increasing - Eastern Sentry programme activated\"}",
+        "related_campaigns_json": "[\"Poland 19-drone incursion (Sept 9-10, 2025)\", \"Romanian airspace violations\", \"Estonian violations\"]",
+        "threat_level_justification": "HIGH - NATO territory violations + confirmed Russian origin + systematic campaign + exposed defense gaps",
+        "intelligence_last_updated": "2025-11-13 07:30:52"
       },
       {
         "id": 4,
@@ -712,7 +745,18 @@
         "confidence_score": 0.7,
         "notes": null,
         "created_at": "2025-11-10 07:25:02.353782",
-        "updated_at": "2025-11-10 07:25:02.353782"
+        "updated_at": "2025-11-10 07:25:02.353782",
+        "threat_actor": null,
+        "threat_actor_confidence": null,
+        "geopolitical_context": null,
+        "official_statements_json": null,
+        "expert_analysis_json": null,
+        "strategic_intent": null,
+        "modus_operandi": null,
+        "countermeasures_json": null,
+        "related_campaigns_json": null,
+        "threat_level_justification": null,
+        "intelligence_last_updated": null
       },
       {
         "id": 5,
@@ -729,7 +773,18 @@
         "confidence_score": 0.8,
         "notes": null,
         "created_at": "2025-11-10 07:25:02.353783",
-        "updated_at": "2025-11-10 07:25:02.353783"
+        "updated_at": "2025-11-10 07:25:02.353783",
+        "threat_actor": null,
+        "threat_actor_confidence": null,
+        "geopolitical_context": null,
+        "official_statements_json": null,
+        "expert_analysis_json": null,
+        "strategic_intent": null,
+        "modus_operandi": null,
+        "countermeasures_json": null,
+        "related_campaigns_json": null,
+        "threat_level_justification": null,
+        "intelligence_last_updated": null
       },
       {
         "id": 6,
@@ -746,7 +801,18 @@
         "confidence_score": 0.8,
         "notes": null,
         "created_at": "2025-11-10 07:25:02.353784",
-        "updated_at": "2025-11-10 07:25:02.353784"
+        "updated_at": "2025-11-10 07:25:02.353784",
+        "threat_actor": "Russian Hybrid Warfare Command",
+        "threat_actor_confidence": 0.9,
+        "geopolitical_context": "September 2025 Coordinated Escalation - 'Zapad Preparation'\n\nUnprecedented multi-country simultaneous operations:\n- Poland: 19 drones in 7 hours (Sept 9-10) - forced Warsaw airport closure\n- Lithuania: Multiple incursions from Belarus\n- Romania: Airspace violations\n- Germany: Continued nuclear facility reconnaissance\n- Denmark/Sweden: Airport closures (Copenhagen 20,000 passengers affected)\n\nCoincides with Belarus-Russia Zapad 2025 military exercise preparations.",
+        "official_statements_json": "[{\"source\": \"Polish Government / NATO Response\", \"date\": \"2025-09-10\", \"statement\": \"Around twenty Russian drones penetrated Polish airspace. Triggered NATO's highest alert since start of full-scale Ukraine war. Eastern Sentry mission activated.\", \"credibility\": 10}, {\"source\": \"Danish Intelligence Service (DDIS)\", \"date\": \"2025\", \"statement\": \"Russia is currently conducting hybrid warfare against NATO. Highly likely that the hybrid threat will increase in the coming years.\", \"credibility\": 9}, {\"source\": \"NATO Intelligence Assessment\", \"date\": \"2025-09\", \"statement\": \"Recovered drones contained no explosive payloads. Confirms Russia probing NATO air defense systems and studying decision-making processes.\", \"credibility\": 9}]",
+        "expert_analysis_json": "[{\"expert\": \"The Soufan Center\", \"assessment\": \"Kremlin deliberately probing NATO readiness, combining drone incursions, sabotage, and GPS jamming to send strategic message that defending Alliance frontline states will carry real costs.\", \"confidence\": 0.85}, {\"expert\": \"French MEP / Former Military Intelligence Director\", \"assessment\": \"Three possible explanations: (1) Interference causing control loss, (2) Deliberate provocations to test reactions, (3) Assessing defensive capacities.\", \"confidence\": 0.7}]",
+        "strategic_intent": "Strategic messaging campaign. Demonstrating capability to overwhelm NATO defenses. Testing Article 5 thresholds. Pre-positioning for potential escalation.",
+        "modus_operandi": "Coordinated timing across multiple countries. Unarmed reconnaissance drones. Deliberate visibility to maximize political impact.",
+        "countermeasures_json": "{\"detection\": \"Effective - all major incursions detected\", \"interdiction\": \"Poor - no successful intercepts reported\", \"NATO_unity\": \"Strengthening - Eastern Sentry activated, increased patrols\", \"public_impact\": \"High - major airport closures, 20K+ passengers affected\"}",
+        "related_campaigns_json": "[\"All European drone operations 2024-2025\", \"GPS jamming campaign\", \"Critical infrastructure sabotage attempts\"]",
+        "threat_level_justification": "CRITICAL - Coordinated multi-national operation + highest NATO alert + demonstrated capability gaps + strategic escalation signal",
+        "intelligence_last_updated": "2025-11-13 07:30:52"
       }
     ],
     "data_sources": [
