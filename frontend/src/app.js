@@ -755,6 +755,168 @@ const app = createApp({
             }
         };
 
+        // View pattern details with intelligence
+        const viewPattern = async (id) => {
+            try {
+                const response = await fetch(`/api/patterns/${id}`);
+                const pattern = await response.json();
+                if (!pattern) return;
+
+                // Parse JSON fields
+                let officialStatements = [];
+                let expertAnalysis = [];
+                let countermeasures = {};
+                let relatedCampaigns = [];
+
+                try {
+                    if (pattern.official_statements_json) {
+                        officialStatements = JSON.parse(pattern.official_statements_json);
+                    }
+                    if (pattern.expert_analysis_json) {
+                        expertAnalysis = JSON.parse(pattern.expert_analysis_json);
+                    }
+                    if (pattern.countermeasures_json) {
+                        countermeasures = JSON.parse(pattern.countermeasures_json);
+                    }
+                    if (pattern.related_campaigns_json) {
+                        relatedCampaigns = JSON.parse(pattern.related_campaigns_json);
+                    }
+                } catch (e) {
+                    console.error('Error parsing JSON fields:', e);
+                }
+
+                // Build official statements HTML
+                let statementsHtml = '';
+                if (officialStatements.length > 0) {
+                    statementsHtml = officialStatements.map(stmt => `
+                        <div class="alert alert-warning mb-2">
+                            <strong><i class="fas fa-quote-left"></i> ${stmt.source}</strong>
+                            <small class="text-muted ml-2">(${stmt.date})</small>
+                            <p class="mb-1 mt-2">"${stmt.statement}"</p>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     style="width: ${stmt.credibility * 10}%"></div>
+                            </div>
+                            <small class="text-muted">Credibility: ${stmt.credibility}/10</small>
+                        </div>
+                    `).join('');
+                }
+
+                // Build expert analysis HTML
+                let analysisHtml = '';
+                if (expertAnalysis.length > 0) {
+                    analysisHtml = expertAnalysis.map(expert => `
+                        <div class="alert alert-info mb-2">
+                            <strong><i class="fas fa-user-tie"></i> ${expert.expert}</strong>
+                            <p class="mb-1 mt-2">${expert.assessment}</p>
+                            <small class="text-muted">Confidence: ${(expert.confidence * 100).toFixed(0)}%</small>
+                        </div>
+                    `).join('');
+                }
+
+                // Build countermeasures HTML
+                let countermeasuresHtml = '';
+                if (Object.keys(countermeasures).length > 0) {
+                    countermeasuresHtml = Object.entries(countermeasures).map(([key, value]) => `
+                        <tr>
+                            <td><strong>${key.replace(/_/g, ' ')}</strong></td>
+                            <td>${value}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Build related campaigns HTML
+                let campaignsHtml = '';
+                if (relatedCampaigns.length > 0) {
+                    campaignsHtml = relatedCampaigns.map(campaign => `
+                        <li><i class="fas fa-link"></i> ${campaign}</li>
+                    `).join('');
+                }
+
+                const content = `
+                    <div class="pattern-detail">
+                        <h4>${pattern.name}</h4>
+                        <p class="text-muted">
+                            <span class="badge badge-secondary">${pattern.pattern_type}</span>
+                            ${pattern.incident_count} incidents
+                        </p>
+
+                        ${pattern.threat_actor ? `
+                        <div class="alert alert-danger">
+                            <h5><i class="fas fa-user-secret"></i> Threat Actor Attribution</h5>
+                            <p><strong>${pattern.threat_actor}</strong></p>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar bg-danger" role="progressbar"
+                                     style="width: ${(pattern.threat_actor_confidence * 100).toFixed(0)}%">
+                                    ${(pattern.threat_actor_confidence * 100).toFixed(0)}% Confidence
+                                </div>
+                            </div>
+                            ${pattern.threat_level_justification ? `
+                                <small><strong>Justification:</strong> ${pattern.threat_level_justification}</small>
+                            ` : ''}
+                        </div>
+                        ` : ''}
+
+                        ${pattern.geopolitical_context ? `
+                        <div class="alert alert-secondary">
+                            <h5><i class="fas fa-globe"></i> Geopolitical Context</h5>
+                            <p style="white-space: pre-wrap;">${pattern.geopolitical_context}</p>
+                        </div>
+                        ` : ''}
+
+                        ${pattern.strategic_intent ? `
+                        <div class="alert alert-warning">
+                            <h5><i class="fas fa-chess"></i> Strategic Intent</h5>
+                            <p>${pattern.strategic_intent}</p>
+                        </div>
+                        ` : ''}
+
+                        ${pattern.modus_operandi ? `
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-cogs"></i> Modus Operandi</h5>
+                            <p>${pattern.modus_operandi}</p>
+                        </div>
+                        ` : ''}
+
+                        ${statementsHtml ? `
+                        <h5 class="mt-4"><i class="fas fa-landmark"></i> Official Statements</h5>
+                        ${statementsHtml}
+                        ` : ''}
+
+                        ${analysisHtml ? `
+                        <h5 class="mt-4"><i class="fas fa-brain"></i> Expert Analysis</h5>
+                        ${analysisHtml}
+                        ` : ''}
+
+                        ${countermeasuresHtml ? `
+                        <h5 class="mt-4"><i class="fas fa-shield-alt"></i> Countermeasure Effectiveness</h5>
+                        <table class="table table-sm">
+                            <tbody>
+                                ${countermeasuresHtml}
+                            </tbody>
+                        </table>
+                        ` : ''}
+
+                        ${campaignsHtml ? `
+                        <h5 class="mt-4"><i class="fas fa-project-diagram"></i> Related Campaigns</h5>
+                        <ul>
+                            ${campaignsHtml}
+                        </ul>
+                        ` : ''}
+                    </div>
+                `;
+
+                // Show in modal
+                const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                document.getElementById('detailModalLabel').textContent = 'Intelligence Pattern Details';
+                document.getElementById('detailModalBody').innerHTML = content;
+                modal.show();
+
+            } catch (error) {
+                console.error('Error fetching pattern details:', error);
+            }
+        };
+
         // Lifecycle
         onMounted(() => {
             fetchStats();
@@ -781,6 +943,7 @@ const app = createApp({
             fetchPatterns,
             fetchInterventions,
             viewIncident,
+            viewPattern,
             viewSourceDetail,
             autoDetectPatterns,
             formatDate,
