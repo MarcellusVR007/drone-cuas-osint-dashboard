@@ -1,8 +1,8 @@
 # Complete API Endpoints Reference
 
-**Version:** 2.0
-**Last Updated:** November 9, 2025
-**Total Endpoints:** 20+
+**Version:** 3.0
+**Last Updated:** November 13, 2025
+**Total Endpoints:** 27+
 
 ---
 
@@ -14,6 +14,351 @@ http://localhost:8000
 ## Interactive API Documentation
 ```
 http://localhost:8000/docs  (Swagger UI)
+```
+
+---
+
+# PATTERN ANALYSIS & COUNTER-MEASURES (7 NEW endpoints)
+
+## 1. Get Strategic Analysis
+```http
+GET /api/patterns/strategic-analysis
+```
+
+**Description:** Get operational classification breakdown (State Actors vs Recruited Locals vs Unknown)
+
+**Example:**
+```bash
+curl http://localhost:8000/api/patterns/strategic-analysis
+```
+
+**Response:**
+```json
+{
+  "classification_breakdown": [
+    {
+      "operational_class": "STATE_ACTOR",
+      "count": 1,
+      "drone_types": "Suspected Russian Orlan-10"
+    },
+    {
+      "operational_class": "RECRUITED_LOCAL",
+      "count": 1,
+      "drone_types": "Consumer DJI-class drone"
+    },
+    {
+      "operational_class": "AUTHORIZED_MILITARY",
+      "count": 1,
+      "drone_types": "Polish Military Training Drone"
+    }
+  ],
+  "state_actor_incidents": [
+    {
+      "id": 10,
+      "sighting_date": "2024-08-08",
+      "title": "Drone sighting at Brunsbüttel Nuclear Power Plant",
+      "operational_class": "STATE_ACTOR",
+      "strategic_assessment": "Russian military-grade reconnaissance drone (Orlan-10) conducting critical infrastructure surveillance. Range: ~120km. Indicates state-level intelligence operation targeting nuclear facility.",
+      "launch_analysis": "Orlan-10 has 120km operational range. Possible launch sites: (1) Baltic Sea vessel within 100km, (2) Land-based site near Polish/Russian border, (3) Belarus territory. Weather conditions and flight duration suggest maritime launch. Recommend correlation with AIS vessel tracking data.",
+      "drone_range": 120,
+      "restricted_area_name": "Brunsbüttel Nuclear Power Plant"
+    }
+  ],
+  "recruited_local_incidents": [
+    {
+      "id": 189,
+      "sighting_date": "2025-11-08",
+      "title": "Multiple drones over South Limburg - NATO JFC Brunssum",
+      "operational_class": "RECRUITED_LOCAL",
+      "strategic_assessment": "Recruited local operative responding to GRU Telegram bounty (2000 EUR Bitcoin payment). Part of systematic reconnaissance campaign targeting NATO infrastructure. Actor: VWarrior channel. Low-sophistication but high-volume threat vector."
+    }
+  ],
+  "all_classified_incidents": [...],
+  "total_classified": 3
+}
+```
+
+---
+
+## 2. Get Counter-Measures Database
+```http
+GET /api/patterns/counter-measures
+```
+
+**Description:** Get all available C-UAS counter-measures with specifications
+
+**Example:**
+```bash
+curl http://localhost:8000/api/patterns/counter-measures
+```
+
+**Response:**
+```json
+{
+  "counter_measures": [
+    {
+      "id": 1,
+      "name": "DroneDefender 3.0",
+      "type": "RF_JAMMER",
+      "description": "Handheld directional RF jammer for GNSS and ISM bands",
+      "effective_against": "Consumer drones, DJI models, low-end reconnaissance UAVs",
+      "range_km": 1.5,
+      "deployment_time_hours": 0,
+      "cost_estimate_eur": 35000,
+      "requires_authorization": true,
+      "mobile": true,
+      "specifications": "Frequency: 400MHz-6GHz | Weight: 6.8kg | Battery: 2hr continuous | Effective angle: 30° cone"
+    },
+    {
+      "id": 2,
+      "name": "AUDS (Anti-UAV Defence System)",
+      "type": "RF_JAMMER",
+      "description": "Vehicle-mounted RF disruption system with optical tracking",
+      "effective_against": "Military UAVs (Orlan-10), tactical reconnaissance drones, consumer drones",
+      "range_km": 10,
+      "deployment_time_hours": 2,
+      "cost_estimate_eur": 850000,
+      "requires_authorization": true,
+      "mobile": true,
+      "specifications": "Radar detection + EO/IR tracking + 2.4/5.8GHz jamming | Vehicle-mounted | Crew: 2 operators"
+    }
+  ],
+  "by_type": {
+    "RF_JAMMER": [...],
+    "RF_DETECTOR": [...],
+    "RADAR": [...],
+    "NET_CAPTURE": [...],
+    "EW_SUITE": [...],
+    "MICROWAVE": [...],
+    "INTEGRATED_SYSTEM": [...]
+  },
+  "total": 10
+}
+```
+
+**Counter-Measure Types:**
+- **RF_JAMMER**: Radio frequency jammers (DroneDefender, AUDS, HP 47, DroneGun)
+- **RF_DETECTOR**: Passive RF detection systems (RfPatrol)
+- **RADAR**: 3D surveillance radar (AARTOS)
+- **NET_CAPTURE**: Physical capture systems (SkyWall)
+- **EW_SUITE**: Electronic warfare suites (DroneSentry-X)
+- **MICROWAVE**: High-powered microwave (Leonidas HPM)
+- **INTEGRATED_SYSTEM**: Multi-layered defense (NINJA Mobile)
+
+---
+
+## 3. Get Counter-Measure Recommendations for Incident
+```http
+GET /api/patterns/counter-measures/incident/{incident_id}
+```
+
+**Parameters:**
+- `incident_id` - ID of the incident (path parameter)
+
+**Example:**
+```bash
+curl http://localhost:8000/api/patterns/counter-measures/incident/10
+```
+
+**Response:**
+```json
+{
+  "incident_id": 10,
+  "recommendations": [
+    {
+      "id": 1,
+      "priority": "CRITICAL",
+      "reasoning": "Military-grade Orlan-10 requires advanced RF disruption. AUDS system effective against military UAVs with 10km range. Deploy at nuclear facility perimeter for critical infrastructure protection.",
+      "estimated_effectiveness": 0.85,
+      "deployment_location_lat": 53.8917,
+      "deployment_location_lon": 9.1280,
+      "deployment_notes": "Position on north perimeter of Brunsbüttel facility. Provides coverage of approach vectors from Baltic Sea. Requires 24/7 operator staffing.",
+      "cm_name": "AUDS (Anti-UAV Defence System)",
+      "cm_type": "RF_JAMMER",
+      "cm_description": "Vehicle-mounted RF disruption system with optical tracking",
+      "range_km": 10,
+      "deployment_time_hours": 2,
+      "cost_estimate_eur": 850000,
+      "requires_authorization": true,
+      "mobile": true,
+      "incident_title": "Drone sighting at Brunsbüttel Nuclear Power Plant",
+      "operational_class": "STATE_ACTOR"
+    },
+    {
+      "id": 2,
+      "priority": "HIGH",
+      "reasoning": "AARTOS radar provides early warning for incoming military UAVs. 15km range allows detection before RF countermeasures needed. Essential for layered defense.",
+      "estimated_effectiveness": 0.9,
+      "cm_name": "AARTOS C-UAS Radar",
+      "cm_type": "RADAR",
+      "cost_estimate_eur": 1200000
+    },
+    {
+      "id": 3,
+      "priority": "MEDIUM",
+      "reasoning": "Leonidas HPM as last-resort hard-kill option if RF jamming fails. Effective against hardened military electronics.",
+      "estimated_effectiveness": 0.75,
+      "cm_name": "Leonidas HPM System",
+      "cm_type": "MICROWAVE",
+      "cost_estimate_eur": 2500000
+    }
+  ],
+  "total": 3
+}
+```
+
+---
+
+## 4. Get Orlan/Military Drone Analysis
+```http
+GET /api/patterns/orlan-analysis
+```
+
+**Description:** Get detailed analysis of state-actor incidents with launch range calculations
+
+**Example:**
+```bash
+curl http://localhost:8000/api/patterns/orlan-analysis
+```
+
+**Response:**
+```json
+{
+  "orlan_incidents": [
+    {
+      "id": 10,
+      "sighting_date": "2024-08-08",
+      "title": "Drone sighting at Brunsbüttel Nuclear Power Plant",
+      "operational_class": "STATE_ACTOR",
+      "strategic_assessment": "Russian military-grade reconnaissance drone (Orlan-10) conducting critical infrastructure surveillance...",
+      "launch_analysis": "Orlan-10 has 120km operational range. Possible launch sites: (1) Baltic Sea vessel within 100km, (2) Land-based site near Polish/Russian border, (3) Belarus territory. Weather conditions and flight duration suggest maritime launch. Recommend correlation with AIS vessel tracking data.",
+      "latitude": 53.891667,
+      "longitude": 9.128056,
+      "drone_type_model": "Suspected Russian Orlan-10",
+      "drone_range": 120,
+      "max_altitude_m": 5000,
+      "endurance_minutes": 960,
+      "target_name": "Brunsbüttel Nuclear Power Plant",
+      "target_lat": 53.891667,
+      "target_lon": 9.128056,
+      "possible_launch_zone": {
+        "center_lat": 53.891667,
+        "center_lon": 9.128056,
+        "radius_km": 120,
+        "analysis": "Orlan-10 has 120km operational range. Possible launch sites: (1) Baltic Sea vessel within 100km, (2) Land-based site near Polish/Russian border, (3) Belarus territory..."
+      }
+    }
+  ],
+  "total": 1,
+  "analysis_summary": "Orlan-10 incidents require maritime or cross-border launch analysis. Check AIS vessel tracking and border proximity."
+}
+```
+
+---
+
+## 5. List Patterns (Enhanced)
+```http
+GET /api/patterns/
+```
+
+**Parameters:**
+- `skip` - Offset (default: 0)
+- `limit` - Max results (default: 100, max: 1000)
+- `pattern_type` - Filter by type (optional): `temporal`, `spatial`, `drone_type`, `operator`
+- `order_by` - Sort by: `recent`, `confidence`, `incidents`
+
+**Example:**
+```bash
+curl "http://localhost:8000/api/patterns/?pattern_type=spatial&order_by=confidence"
+```
+
+**Response:**
+```json
+{
+  "total": 5,
+  "skip": 0,
+  "limit": 100,
+  "patterns": [
+    {
+      "id": 1,
+      "name": "Repeated targeting of Brussels Airport",
+      "description": "3 incidents near Brussels Airport",
+      "pattern_type": "spatial",
+      "incident_count": 3,
+      "primary_location": "Brussels Airport",
+      "confidence_score": 0.7,
+      "created_at": "2025-11-09T10:00:00",
+      "updated_at": "2025-11-09T15:30:00"
+    }
+  ]
+}
+```
+
+---
+
+## 6. Get Pattern Details with Incidents
+```http
+GET /api/patterns/{pattern_id}/incidents
+```
+
+**Parameters:**
+- `pattern_id` - ID of the pattern (path parameter)
+
+**Example:**
+```bash
+curl http://localhost:8000/api/patterns/1/incidents
+```
+
+**Response:**
+```json
+{
+  "pattern": {
+    "id": 1,
+    "name": "Repeated targeting of Brussels Airport",
+    "pattern_type": "spatial",
+    "incident_count": 3,
+    "confidence_score": 0.7
+  },
+  "incidents": [
+    {
+      "id": 5,
+      "sighting_date": "2025-11-08",
+      "title": "Drone over Brussels Airport runway"
+    },
+    {
+      "id": 12,
+      "sighting_date": "2025-10-15",
+      "title": "Unauthorized UAV near terminal"
+    }
+  ],
+  "total_incidents": 3
+}
+```
+
+---
+
+## 7. Auto-Detect Patterns
+```http
+POST /api/patterns/auto-detect
+```
+
+**Description:** Automatically detect patterns from incidents (spatial, temporal, drone type)
+
+**Example:**
+```bash
+curl -X POST http://localhost:8000/api/patterns/auto-detect
+```
+
+**Response:**
+```json
+{
+  "detected_patterns": 3,
+  "patterns": [
+    "Detected spatial pattern: Brussels Airport (3 incidents)",
+    "Detected drone pattern: DJI Phantom 4 (5 incidents)",
+    "Detected temporal pattern: Coordinated campaign on 2025-11-08 (2 incidents)"
+  ]
+}
 ```
 
 ---
@@ -809,6 +1154,37 @@ async def protected_route(credentials: HTTPAuthCredentials = Depends(security)):
 
 ---
 
-**API Version:** 2.0
-**Last Updated:** November 9, 2025
+# SOCMINT (SOCIAL MEDIA INTELLIGENCE) ENDPOINTS
+
+See separate documentation for SOCMINT endpoints:
+- `/api/socmint/actors` - Get all threat actors
+- `/api/socmint/threats/active` - Get unlinked social media posts (proactive threats)
+- `/api/socmint/incident/{id}/social-media` - Get social media posts linked to incident
+- `/api/socmint/incident/{id}/crypto-transactions` - Get crypto transactions linked to incident
+- `/api/socmint/timeline/{id}` - Get full intelligence timeline for incident
+
+---
+
+**API Version:** 3.0
+**Last Updated:** November 13, 2025
 **All Endpoints Tested:** ✅
+
+## What's New in v3.0
+
+### Pattern Analysis & Counter-Measures
+- ✅ Operational classification (State Actor vs Recruited Local vs Unknown)
+- ✅ Strategic assessment for incidents
+- ✅ Launch analysis for military drones (Orlan-10)
+- ✅ 10 C-UAS counter-measures with specifications
+- ✅ Tactical recommendations per incident
+- ✅ Orlan/military drone analysis with launch range calculations
+
+### Database Enhancements
+- New tables: `counter_measures`, `incident_recommendations`
+- New columns: `operational_class`, `strategic_assessment`, `launch_analysis`
+
+### Use Cases
+1. **Intelligence Analysis**: Distinguish between state operations and recruited locals
+2. **Tactical Response**: Get counter-measure recommendations for specific threats
+3. **Strategic Planning**: Analyze military drone capabilities and launch zones
+4. **Budget Planning**: Compare C-UAS system costs and effectiveness

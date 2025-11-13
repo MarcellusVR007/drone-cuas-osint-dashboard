@@ -9,6 +9,27 @@ import json
 
 router = APIRouter()
 
+@router.get("/threats/active")
+async def get_active_threats(db: Session = Depends(get_db)):
+    """Get social media posts WITHOUT linked incidents (proactive threats)"""
+    query = text("""
+        SELECT
+            smp.*,
+            a.name as author_name,
+            a.alias as author_alias,
+            a.affiliation as author_affiliation,
+            a.confidence_score as author_confidence
+        FROM social_media_posts smp
+        LEFT JOIN actors a ON smp.author_id = a.id
+        WHERE smp.linked_incident_id IS NULL
+        ORDER BY smp.post_date DESC
+    """)
+
+    result = db.execute(query)
+    threats = [dict(row._mapping) for row in result]
+
+    return {"threats": threats, "total": len(threats)}
+
 @router.get("/incident/{incident_id}/social-media")
 async def get_incident_social_media(incident_id: int, db: Session = Depends(get_db)):
     """Get social media posts linked to an incident"""
@@ -78,10 +99,12 @@ async def get_actor_details(actor_id: int, db: Session = Depends(get_db)):
     # Get actor info
     actor_query = text("SELECT * FROM actors WHERE id = :actor_id")
     actor_result = db.execute(actor_query, {"actor_id": actor_id})
-    actor = dict(actor_result.fetchone()._mapping) if actor_result.rowcount > 0 else None
+    actor_row = actor_result.fetchone()
 
-    if not actor:
+    if not actor_row:
         raise HTTPException(status_code=404, detail="Actor not found")
+
+    actor = dict(actor_row._mapping)
 
     # Get posts
     posts_query = text("""
@@ -128,10 +151,12 @@ async def get_incident_timeline(incident_id: int, db: Session = Depends(get_db))
     # Get incident
     incident_query = text("SELECT * FROM incidents WHERE id = :incident_id")
     incident_result = db.execute(incident_query, {"incident_id": incident_id})
-    incident = dict(incident_result.fetchone()._mapping) if incident_result.rowcount > 0 else None
+    incident_row = incident_result.fetchone()
 
-    if not incident:
+    if not incident_row:
         raise HTTPException(status_code=404, detail="Incident not found")
+
+    incident = dict(incident_row._mapping)
 
     # Get related posts
     posts_query = text("""

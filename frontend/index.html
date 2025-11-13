@@ -432,6 +432,29 @@
         .badge-info {
             background-color: rgba(13, 110, 253, 0.6);
         }
+
+        /* Timeline horizontal styling */
+        .timeline-horizontal {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .timeline-event {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .timeline-arrow {
+            font-size: 2rem;
+            color: var(--danger);
+            margin: 0 10px;
+        }
     </style>
 </head>
 <body>
@@ -461,6 +484,9 @@
                     </div>
                     <div class="sidebar-item" @click="currentView = 'patterns'" :class="{active: currentView === 'patterns'}">
                         <i class="fas fa-network-wired"></i> Patterns
+                    </div>
+                    <div class="sidebar-item" @click="currentView = 'threat-intel'" :class="{active: currentView === 'threat-intel'}">
+                        <i class="fas fa-user-secret"></i> Threat Intel
                     </div>
                     <div class="sidebar-item" @click="currentView = 'interventions'" :class="{active: currentView === 'interventions'}">
                         <i class="fas fa-shield-virus"></i> Interventions
@@ -812,6 +838,201 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Threat Intelligence View -->
+                    <div v-if="currentView === 'threat-intel'">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="mb-0"><i class="fas fa-user-secret text-danger"></i> Threat Intelligence & SOCMINT</h2>
+                            <button class="btn btn-primary" @click="fetchActors(); fetchThreatAlerts(); fetchConnectedIncidents(); renderActorNetwork();">
+                                <i class="fas fa-sync"></i> Refresh Data
+                            </button>
+                        </div>
+
+                        <div class="alert alert-info mb-3">
+                            <strong>Debug Info:</strong>
+                            Actors: {{ actors ? actors.length : 'N/A' }} |
+                            Threats: {{ threatAlerts ? threatAlerts.length : 'N/A' }} |
+                            Connected: {{ connectedIncidents ? connectedIncidents.length : 'N/A' }}
+                            <br>
+                            <small>If all show N/A or 0, click the "Refresh Data" button. Check browser console (CMD+Option+I) for errors.</small>
+                        </div>
+
+                        <!-- Quick Test: Show raw data -->
+                        <div v-if="actors && actors.length > 0" class="alert alert-success">
+                            ✓ Actors loaded successfully! First actor: {{ actors[0].name }}
+                        </div>
+                        <div v-else class="alert alert-warning">
+                            ⚠ No actors loaded. Click "Refresh Data" button above.
+                        </div>
+
+                        <!-- Proactive Threat Alerts -->
+                        <div class="card border-danger mb-4">
+                            <div class="card-header bg-danger text-white">
+                                <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> 🚨 Proactive Threat Alerts</h4>
+                                <small>Active bounties and recruitment posts WITHOUT linked incidents (potential future threats)</small>
+                            </div>
+                            <div class="card-body">
+                                <div v-if="!threatAlerts || threatAlerts.length === 0" class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i> No active unlinked threats detected
+                                </div>
+                                <div v-else>
+                                    <div v-for="alert in threatAlerts" :key="alert.id" class="alert alert-danger mb-3">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h5 class="alert-heading">
+                                                    <i class="fas fa-bullhorn"></i> {{ alert.platform }} - {{ alert.content_type.replace('_', ' ').toUpperCase() }}
+                                                </h5>
+                                                <p><strong>Posted:</strong> {{ new Date(alert.post_date).toLocaleString() }}</p>
+                                                <p><strong>Content:</strong> {{ alert.content }}</p>
+                                                <p><strong>Target:</strong> {{ alert.target_location }} ({{ alert.target_type }})</p>
+                                                <p><strong>Payment:</strong> {{ alert.payment_amount }} {{ alert.payment_currency }}</p>
+                                                <p v-if="alert.crypto_wallet_address"><strong>Wallet:</strong> <code>{{ alert.crypto_wallet_address }}</code></p>
+                                                <p><strong>Author:</strong> {{ alert.author_name }} ({{ alert.author_affiliation }})</p>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-danger">Risk: HIGH</span><br>
+                                                <span class="badge bg-warning text-dark mt-1">Credibility: {{ (alert.credibility_score * 100).toFixed(0) }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actor Intelligence Hub -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h4 class="mb-0"><i class="fas fa-users"></i> Threat Actor Intelligence</h4>
+                                        <small>Debug: {{ actors ? actors.length : 'undefined' }} actors loaded</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-if="loading" class="text-center">
+                                            <div class="loading"></div>
+                                        </div>
+                                        <div v-else-if="!actors || actors.length === 0" class="alert alert-info">
+                                            No actors loaded yet. Click refresh or check console for errors.
+                                        </div>
+                                        <div v-else>
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Actor</th>
+                                                        <th>Type</th>
+                                                        <th>Affiliation</th>
+                                                        <th>Confidence</th>
+                                                        <th>Activity</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="actor in actors" :key="actor.id" style="cursor: pointer;" @click="viewActor(actor.id)">
+                                                        <td>
+                                                            <strong>{{ actor.name }}</strong><br>
+                                                            <small class="text-muted">{{ actor.alias }}</small>
+                                                        </td>
+                                                        <td><span class="badge bg-secondary">{{ actor.actor_type }}</span></td>
+                                                        <td>
+                                                            <span :class="`badge ${actor.affiliation.includes('GRU') ? 'bg-danger' : 'bg-warning text-dark'}`">
+                                                                {{ actor.affiliation }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="progress" style="height: 20px;">
+                                                                <div class="progress-bar" :class="`bg-${actor.confidence_score > 0.7 ? 'danger' : 'warning'}`"
+                                                                     :style="`width: ${actor.confidence_score * 100}%`">
+                                                                    {{ (actor.confidence_score * 100).toFixed(0) }}%
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <small>
+                                                                {{ actor.posts_count }} posts<br>
+                                                                {{ actor.transactions_count }} transactions
+                                                            </small>
+                                                        </td>
+                                                        <td>
+                                                            <span :class="`badge ${actor.status === 'active' ? 'bg-danger' : 'bg-secondary'}`">
+                                                                {{ actor.status }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-danger" @click.stop="viewActor(actor.id)">
+                                                                <i class="fas fa-search"></i> Profile
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actor Network Visualization -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h4 class="mb-0"><i class="fas fa-project-diagram"></i> Actor Network Graph</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="actorNetwork" style="height: 500px; border: 1px solid #dee2e6;"></div>
+                                        <small class="text-muted">Node size = confidence score | Edge thickness = relationship strength</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connected Incidents (Evidence Chain) -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        <h4 class="mb-0"><i class="fas fa-link"></i> Evidence Chains: Post → Payment → Incident</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-if="!connectedIncidents || connectedIncidents.length === 0" class="alert alert-info">
+                                            No fully connected evidence chains yet
+                                        </div>
+                                        <div v-else>
+                                            <div v-for="chain in connectedIncidents" :key="chain.incident_id" class="mb-4 p-3 border rounded">
+                                                <h5>
+                                                    <i class="fas fa-drone text-danger"></i>
+                                                    {{ chain.incident_title }}
+                                                </h5>
+                                                <div class="timeline-horizontal">
+                                                    <div class="timeline-event">
+                                                        <div class="badge bg-primary">1. Telegram Post</div>
+                                                        <p><small>{{ new Date(chain.post_date).toLocaleString() }}</small></p>
+                                                        <p><strong>{{ chain.author_name }}</strong>: {{ chain.post_content }}</p>
+                                                    </div>
+                                                    <div class="timeline-arrow">→</div>
+                                                    <div class="timeline-event">
+                                                        <div class="badge bg-warning text-dark">2. Bitcoin Payment</div>
+                                                        <p><small>{{ new Date(chain.tx_date).toLocaleString() }}</small></p>
+                                                        <p>{{ chain.tx_amount }} {{ chain.tx_currency }} (${{ chain.tx_usd_value }})</p>
+                                                    </div>
+                                                    <div class="timeline-arrow">→</div>
+                                                    <div class="timeline-event">
+                                                        <div class="badge bg-danger">3. Drone Incident</div>
+                                                        <p><small>{{ chain.incident_date }}</small></p>
+                                                        <p>{{ chain.incident_location }}</p>
+                                                    </div>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-primary mt-2" @click="viewIncident(chain.incident_id)">
+                                                    <i class="fas fa-search"></i> View Full Incident
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -861,6 +1082,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Leaflet Maps -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Vis.js for network graphs -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <!-- App -->

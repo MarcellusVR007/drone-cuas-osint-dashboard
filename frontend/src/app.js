@@ -23,6 +23,11 @@ const app = createApp({
         const selectedIncident = ref(null);
         const selectedSource = ref(null);
 
+        // SOCMINT / Threat Intelligence state
+        const actors = ref([]);
+        const threatAlerts = ref([]);
+        const connectedIncidents = ref([]);
+
         // Sort state
         const sortColumn = ref('date');
         const sortDirection = ref('desc');
@@ -33,11 +38,7 @@ const app = createApp({
         // Computed
         const filteredIncidents = computed(() => incidents.value.slice(0, 20));
 
-        // Initialize data on component mount
-        onMounted(async () => {
-            await fetchStats();
-            await fetchIncidents();
-        });
+        // Initialize data on component mount - REMOVED DUPLICATE, SEE BOTTOM
 
         // Helper function to convert source code to full name
         const getSourceName = (sourceCode) => {
@@ -549,9 +550,133 @@ const app = createApp({
                         </p>
                     </div>
                 </div>
+
+                <!-- SOCMINT Intelligence Section -->
+                <div id="socmintSection">
+                    <div class="text-center p-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading SOCMINT data...</span>
+                        </div>
+                        <p class="mt-2">Loading intelligence data...</p>
+                    </div>
+                </div>
             `;
 
             document.getElementById('detailContent').innerHTML = html;
+
+            // Fetch SOCMINT data asynchronously
+            (async () => {
+                try {
+                    const [postsResp, txResp, timelineResp] = await Promise.all([
+                        fetch(`/api/socmint/incident/${id}/social-media`),
+                        fetch(`/api/socmint/incident/${id}/crypto-transactions`),
+                        fetch(`/api/socmint/timeline/${id}`)
+                    ]);
+
+                    const postsData = await postsResp.json();
+                    const txData = await txResp.json();
+                    const timelineData = timelineResp.ok ? await timelineResp.json() : null;
+
+                    const posts = postsData.posts || [];
+                    const transactions = txData.transactions || [];
+                    const hasIntel = posts.length > 0 || transactions.length > 0;
+
+                    let socmintHTML = '';
+
+                    if (hasIntel) {
+                        socmintHTML = `
+                            <div class="card border-danger mb-4">
+                                <div class="card-header bg-danger text-white">
+                                    <h5 class="mb-0"><i class="fas fa-user-secret"></i> 🔗 SOCMINT Intelligence: "Connecting the Dots"</h5>
+                                    <small>Social Media → Cryptocurrency → Physical Incident Evidence Chain</small>
+                                </div>
+                                <div class="card-body">
+                        `;
+
+                        if (posts.length > 0) {
+                            socmintHTML += `
+                                <h6><i class="fas fa-comments"></i> Social Media Posts (${posts.length})</h6>
+                                ${posts.map(post => `
+                                    <div class="alert alert-warning mb-3">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6><strong>${post.platform}</strong> - ${post.content_type.replace('_', ' ').toUpperCase()}</h6>
+                                                <p><strong>Posted:</strong> ${new Date(post.post_date).toLocaleString()}</p>
+                                                <p><strong>Author:</strong> ${post.author_name || 'Unknown'} (${post.author_affiliation || 'Unknown'})</p>
+                                                <p><strong>Content:</strong> ${post.content}</p>
+                                                ${post.payment_amount ? `<p><strong>Payment Offered:</strong> ${post.payment_amount} ${post.payment_currency}</p>` : ''}
+                                                ${post.crypto_wallet_address ? `<p><strong>Wallet:</strong> <code>${post.crypto_wallet_address}</code></p>` : ''}
+                                                ${post.target_location ? `<p><strong>Target:</strong> ${post.target_location} (${post.target_type})</p>` : ''}
+                                                ${post.correlation_notes ? `<p><em>${post.correlation_notes}</em></p>` : ''}
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-warning text-dark">Credibility: ${(post.credibility_score * 100).toFixed(0)}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            `;
+                        }
+
+                        if (transactions.length > 0) {
+                            socmintHTML += `
+                                <h6 class="mt-3"><i class="fas fa-bitcoin"></i> Cryptocurrency Transactions (${transactions.length})</h6>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Blockchain</th>
+                                            <th>Amount</th>
+                                            <th>From</th>
+                                            <th>To</th>
+                                            <th>Purpose</th>
+                                            <th>Link</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${transactions.map(tx => `
+                                            <tr>
+                                                <td>${new Date(tx.transaction_date).toLocaleString()}</td>
+                                                <td>${tx.blockchain}</td>
+                                                <td>${tx.amount} ${tx.currency}<br><small>($${tx.usd_value})</small></td>
+                                                <td>${tx.sender_name || 'Unknown'}</td>
+                                                <td>${tx.recipient_name || 'Unknown operative'}</td>
+                                                <td><span class="badge bg-danger">${tx.purpose}</span></td>
+                                                <td>${tx.source_url ? `<a href="${tx.source_url}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>` : 'N/A'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                                ${transactions[0]?.notes ? `<p class="text-muted"><em>${transactions[0].notes}</em></p>` : ''}
+                            `;
+                        }
+
+                        socmintHTML += `
+                                    <div class="alert alert-info mt-3">
+                                        <strong><i class="fas fa-lightbulb"></i> Intelligence Assessment:</strong>
+                                        <p>This incident has verified SOCMINT connections showing a complete evidence chain from online recruitment to cryptocurrency payment to physical drone operation. This pattern is consistent with state-sponsored hybrid warfare operations.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        socmintHTML = `
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-info-circle"></i> No SOCMINT intelligence data linked to this incident yet.
+                            </div>
+                        `;
+                    }
+
+                    document.getElementById('socmintSection').innerHTML = socmintHTML;
+                } catch (error) {
+                    console.error('Error loading SOCMINT data:', error);
+                    document.getElementById('socmintSection').innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Could not load SOCMINT data for this incident.
+                        </div>
+                    `;
+                }
+            })();
 
             // Initialize the detail map after a short delay to ensure DOM is ready
             setTimeout(() => {
@@ -917,9 +1042,298 @@ const app = createApp({
             }
         };
 
-        // Lifecycle
-        onMounted(() => {
-            fetchStats();
+        // SOCMINT / Threat Intelligence functions
+        const fetchActors = async () => {
+            try {
+                console.log('Fetching actors...');
+                const response = await fetch('/api/socmint/actors');
+                const data = await response.json();
+                console.log('Actors received:', data.actors?.length || 0);
+                actors.value = data.actors || [];
+                console.log('Actors stored in Vue:', actors.value.length);
+            } catch (error) {
+                console.error('Error fetching actors:', error);
+            }
+        };
+
+        const fetchThreatAlerts = async () => {
+            // Fetch social media posts WITHOUT linked incidents (proactive threats)
+            try {
+                console.log('Fetching threat alerts...');
+                const response = await fetch('/api/socmint/threats/active');
+                const data = await response.json();
+                console.log('Threats received:', data.threats?.length || 0);
+                threatAlerts.value = data.threats || [];
+                console.log('Threats stored in Vue:', threatAlerts.value.length);
+            } catch (error) {
+                console.error('Error fetching threat alerts:', error);
+            }
+        };
+
+        const fetchConnectedIncidents = async () => {
+            // Fetch incidents that have BOTH social media posts AND crypto transactions
+            try {
+                const incidentsResp = await fetch('/api/incidents/?limit=100');
+                const incidentsData = await incidentsResp.json();
+
+                const connected = [];
+                for (const incident of incidentsData.incidents) {
+                    try {
+                        const timeline = await fetch(`/api/socmint/timeline/${incident.id}`);
+                        if (timeline.ok) {
+                            const timelineData = await timeline.json();
+                            if (timelineData.timeline && timelineData.timeline.length >= 3) {
+                                // Has full chain: post + transaction + incident
+                                const post = timelineData.timeline.find(t => t.type === 'post');
+                                const tx = timelineData.timeline.find(t => t.type === 'transaction');
+
+                                if (post && tx) {
+                                    connected.push({
+                                        incident_id: incident.id,
+                                        incident_title: incident.title,
+                                        incident_date: incident.sighting_date,
+                                        incident_location: incident.title.match(/\((.*?)\)/)?.[1] || 'Unknown',
+                                        post_date: post.data.post_date,
+                                        post_content: post.data.content,
+                                        author_name: post.data.author_name,
+                                        tx_date: tx.data.transaction_date,
+                                        tx_amount: tx.data.amount,
+                                        tx_currency: tx.data.currency,
+                                        tx_usd_value: tx.data.usd_value
+                                    });
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // Incident doesn't have SOCMINT data, skip
+                    }
+                }
+                connectedIncidents.value = connected;
+            } catch (error) {
+                console.error('Error fetching connected incidents:', error);
+            }
+        };
+
+        const viewActor = async (id) => {
+            try {
+                const response = await fetch(`/api/socmint/actors/${id}`);
+                const data = await response.json();
+
+                const actor = data.actor;
+                const posts = data.posts || [];
+                const transactions = data.transactions || [];
+                const relationships = data.relationships || [];
+
+                let content = `
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-danger">
+                                <div class="card-header bg-danger">
+                                    <strong><i class="fas fa-user-secret"></i> Actor Profile</strong>
+                                </div>
+                                <div class="card-body">
+                                    <h4>${actor.name}</h4>
+                                    <p><strong>Alias:</strong> ${actor.alias || 'N/A'}</p>
+                                    <p><strong>Type:</strong> <span class="badge bg-secondary">${actor.actor_type}</span></p>
+                                    <p><strong>Affiliation:</strong> <span class="badge bg-danger">${actor.affiliation}</span></p>
+                                    <p><strong>Telegram:</strong> ${actor.telegram_handle || 'N/A'}</p>
+                                    <p><strong>Nationality:</strong> ${actor.nationality || 'Unknown'}</p>
+                                    <p><strong>Status:</strong> <span class="badge bg-${actor.status === 'active' ? 'danger' : 'secondary'}">${actor.status}</span></p>
+                                    <p><strong>Confidence:</strong>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar bg-danger" style="width: ${actor.confidence_score * 100}%">
+                                                ${(actor.confidence_score * 100).toFixed(0)}%
+                                            </div>
+                                        </div>
+                                    </p>
+                                    <p><strong>First Observed:</strong> ${actor.first_observed}</p>
+                                    <p><strong>Last Activity:</strong> ${actor.last_activity}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-dark">
+                                <div class="card-header bg-info">
+                                    <strong><i class="fas fa-file-alt"></i> Intelligence Notes</strong>
+                                </div>
+                                <div class="card-body">
+                                    <p>${actor.notes || 'No additional notes'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5><i class="fas fa-comments"></i> Social Media Posts (${posts.length})</h5>
+                    ${posts.length > 0 ? `
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Platform</th>
+                                    <th>Type</th>
+                                    <th>Content</th>
+                                    <th>Payment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${posts.map(post => `
+                                    <tr>
+                                        <td>${new Date(post.post_date).toLocaleString()}</td>
+                                        <td>${post.platform}</td>
+                                        <td><span class="badge bg-warning text-dark">${post.content_type}</span></td>
+                                        <td>${post.content.substring(0, 100)}...</td>
+                                        <td>${post.payment_amount ? post.payment_amount + ' ' + post.payment_currency : 'N/A'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p class="text-muted">No posts recorded</p>'}
+
+                    <h5 class="mt-4"><i class="fas fa-bitcoin"></i> Crypto Transactions (${transactions.length})</h5>
+                    ${transactions.length > 0 ? `
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Blockchain</th>
+                                    <th>Amount</th>
+                                    <th>Purpose</th>
+                                    <th>Link</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${transactions.map(tx => `
+                                    <tr>
+                                        <td>${new Date(tx.transaction_date).toLocaleString()}</td>
+                                        <td>${tx.blockchain}</td>
+                                        <td>${tx.amount} ${tx.currency} ($${tx.usd_value})</td>
+                                        <td><span class="badge bg-danger">${tx.purpose}</span></td>
+                                        <td>${tx.source_url ? `<a href="${tx.source_url}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>` : 'N/A'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p class="text-muted">No transactions recorded</p>'}
+
+                    ${relationships.length > 0 ? `
+                        <h5 class="mt-4"><i class="fas fa-project-diagram"></i> Network Connections (${relationships.length})</h5>
+                        <ul>
+                            ${relationships.map(rel => `
+                                <li>
+                                    <strong>${rel.actor1_name}</strong> ↔ <strong>${rel.actor2_name}</strong>
+                                    (${rel.relationship_type}, ${(rel.confidence_score * 100).toFixed(0)}% confidence)
+                                    ${rel.evidence ? `<br><small class="text-muted">Evidence: ${rel.evidence}</small>` : ''}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    ` : ''}
+                `;
+
+                const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                document.getElementById('detailModalLabel').textContent = `Actor Profile: ${actor.name}`;
+                document.getElementById('detailModalBody').innerHTML = content;
+                modal.show();
+
+            } catch (error) {
+                console.error('Error fetching actor details:', error);
+            }
+        };
+
+        const renderActorNetwork = async () => {
+            try {
+                const response = await fetch('/api/socmint/network/actors');
+                const data = await response.json();
+
+                if (!data.nodes || data.nodes.length === 0) {
+                    document.getElementById('actorNetwork').innerHTML = '<div class="alert alert-info">No actor network data available yet</div>';
+                    return;
+                }
+
+                // Create nodes with size based on confidence
+                const nodes = data.nodes.map(node => ({
+                    id: node.id,
+                    label: node.label,
+                    title: `${node.label} (${node.alias})\n${node.affiliation}\nConfidence: ${(node.confidence * 100).toFixed(0)}%`,
+                    value: node.confidence * 100, // Size
+                    color: {
+                        background: node.affiliation.includes('GRU') ? '#dc3545' : '#ffc107',
+                        border: '#fff',
+                        highlight: {
+                            background: '#ff6b7a',
+                            border: '#fff'
+                        }
+                    },
+                    font: { color: '#fff' }
+                }));
+
+                // Create edges with thickness based on confidence
+                const edges = data.edges.map(edge => ({
+                    from: edge.from,
+                    to: edge.to,
+                    label: edge.label,
+                    title: `${edge.label} (${(edge.confidence * 100).toFixed(0)}% confidence)`,
+                    value: edge.confidence * 10, // Thickness
+                    color: {
+                        color: '#6c757d',
+                        highlight: '#ff6b7a'
+                    }
+                }));
+
+                const container = document.getElementById('actorNetwork');
+                const networkData = { nodes, edges };
+
+                const options = {
+                    nodes: {
+                        shape: 'dot',
+                        scaling: {
+                            min: 10,
+                            max: 30
+                        },
+                        font: {
+                            size: 14,
+                            face: 'Arial'
+                        }
+                    },
+                    edges: {
+                        width: 2,
+                        smooth: {
+                            type: 'continuous'
+                        }
+                    },
+                    physics: {
+                        stabilization: true,
+                        barnesHut: {
+                            gravitationalConstant: -20000,
+                            springConstant: 0.04,
+                            springLength: 150
+                        }
+                    },
+                    interaction: {
+                        hover: true,
+                        tooltipDelay: 200
+                    }
+                };
+
+                new vis.Network(container, networkData, options);
+            } catch (error) {
+                console.error('Error rendering actor network:', error);
+                document.getElementById('actorNetwork').innerHTML = '<div class="alert alert-danger">Error loading network visualization</div>';
+            }
+        };
+
+        // Lifecycle - Combined onMounted
+        onMounted(async () => {
+            // Load initial data
+            await fetchStats();
+            await fetchIncidents();
+            await fetchPatterns();
+            await fetchRestrictedAreas();
+            await fetchDroneTypes();
+
+            // Load SOCMINT data
+            await fetchActors();
+            await fetchThreatAlerts();
+            await fetchConnectedIncidents();
         });
 
         return {
@@ -952,6 +1366,15 @@ const app = createApp({
             getCountryFromArea,
             getSourceName,
             initDetailMap,
+            // SOCMINT
+            actors,
+            threatAlerts,
+            connectedIncidents,
+            fetchActors,
+            fetchThreatAlerts,
+            fetchConnectedIncidents,
+            viewActor,
+            renderActorNetwork,
             sortBy,
             getSortClass,
             watch: () => {
@@ -976,6 +1399,12 @@ const app = createApp({
                 this.fetchPatterns();
             } else if (newView === 'interventions') {
                 this.fetchInterventions();
+            } else if (newView === 'threat-intel') {
+                // Load SOCMINT data and render network graph
+                this.fetchActors();
+                this.fetchThreatAlerts();
+                this.fetchConnectedIncidents();
+                setTimeout(() => this.renderActorNetwork(), 500);
             }
         }
     }

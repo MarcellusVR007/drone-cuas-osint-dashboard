@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SOCMINT Test</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h2>SOCMINT Data Test</h2>
+        <div v-if="loading">Loading...</div>
+        <div v-else>
+            <h3>Actors: {{ actors.length }}</h3>
+            <pre>{{ actors }}</pre>
+            
+            <h3>Threats: {{ threats.length }}</h3>
+            <pre>{{ threats }}</pre>
+        </div>
+    </div>
+
+    <script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            const actors = ref([]);
+            const threats = ref([]);
+            const loading = ref(true);
+
+            onMounted(async () => {
+                try {
+                    const actorsResp = await fetch('/api/socmint/actors');
+                    const actorsData = await actorsResp.json();
+                    actors.value = actorsData.actors || [];
+
+                    const threatsResp = await fetch('/api/socmint/threats/active');
+                    const threatsData = await threatsResp.json();
+                    threats.value = threatsData.threats || [];
+
+                    loading.value = false;
+                } catch (error) {
+                    console.error('Error:', error);
+                    loading.value = false;
+                }
+            });
+
+            return { actors, threats, loading };
+        }
+    }).mount('#app');
+    </script>
+</body>
+</html>

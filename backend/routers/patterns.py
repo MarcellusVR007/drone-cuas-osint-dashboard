@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict
 from datetime import datetime
 from backend.database import get_db
 from backend.models import Pattern, Incident
@@ -62,6 +62,127 @@ async def list_patterns(
         "skip": skip,
         "limit": limit,
         "patterns": patterns
+    }
+
+@router.get("/strategic-analysis")
+async def get_strategic_analysis(db: Session = Depends(get_db)):
+    """Get strategic analysis with operational classification breakdown"""
+
+    # Get operational class distribution
+    query = text("""
+        SELECT
+            operational_class,
+            COUNT(*) as count,
+            GROUP_CONCAT(DISTINCT drone_description) as drone_types
+        FROM incidents
+        WHERE operational_class IS NOT NULL
+        GROUP BY operational_class
+    """)
+    result = db.execute(query)
+    classification_breakdown = [dict(row._mapping) for row in result]
+
+    # Get all classified incidents with details
+    query = text("""
+        SELECT
+            i.id,
+            i.sighting_date,
+            i.title,
+            i.operational_class,
+            i.strategic_assessment,
+            i.launch_analysis,
+            i.latitude,
+            i.longitude,
+            i.drone_description,
+            i.suspected_operator,
+            dt.model as drone_type_model,
+            dt.range_km as drone_range,
+            ra.name as restricted_area_name
+        FROM incidents i
+        LEFT JOIN drone_types dt ON i.drone_type_id = dt.id
+        LEFT JOIN restricted_areas ra ON i.restricted_area_id = ra.id
+        WHERE i.operational_class IS NOT NULL
+        ORDER BY i.sighting_date DESC
+    """)
+    result = db.execute(query)
+    classified_incidents = [dict(row._mapping) for row in result]
+
+    # Get state actor incidents (Orlan, military)
+    state_actors = [inc for inc in classified_incidents if inc['operational_class'] == 'STATE_ACTOR']
+
+    # Get recruited local incidents (Telegram bounties)
+    recruited_locals = [inc for inc in classified_incidents if inc['operational_class'] == 'RECRUITED_LOCAL']
+
+    return {
+        "classification_breakdown": classification_breakdown,
+        "state_actor_incidents": state_actors,
+        "recruited_local_incidents": recruited_locals,
+        "all_classified_incidents": classified_incidents,
+        "total_classified": len(classified_incidents)
+    }
+
+@router.get("/counter-measures")
+async def get_counter_measures(db: Session = Depends(get_db)):
+    """Get all available counter-measures"""
+
+    query = text("""
+        SELECT * FROM counter_measures
+        ORDER BY type, cost_estimate_eur
+    """)
+    result = db.execute(query)
+    counter_measures = [dict(row._mapping) for row in result]
+
+    # Group by type
+    by_type = {}
+    for cm in counter_measures:
+        cm_type = cm['type']
+        if cm_type not in by_type:
+            by_type[cm_type] = []
+        by_type[cm_type].append(cm)
+
+    return {
+        "counter_measures": counter_measures,
+        "by_type": by_type,
+        "total": len(counter_measures)
+    }
+
+@router.get("/orlan-analysis")
+async def get_orlan_analysis(db: Session = Depends(get_db)):
+    """Get detailed analysis of Orlan/military drone incidents with launch predictions"""
+
+    query = text("""
+        SELECT
+            i.*,
+            dt.model as drone_type_model,
+            dt.range_km as drone_range,
+            dt.max_altitude_m,
+            dt.endurance_minutes,
+            ra.name as target_name,
+            ra.latitude as target_lat,
+            ra.longitude as target_lon
+        FROM incidents i
+        LEFT JOIN drone_types dt ON i.drone_type_id = dt.id
+        LEFT JOIN restricted_areas ra ON i.restricted_area_id = ra.id
+        WHERE i.operational_class = 'STATE_ACTOR'
+        ORDER BY i.sighting_date DESC
+    """)
+    result = db.execute(query)
+    orlan_incidents = [dict(row._mapping) for row in result]
+
+    # For each Orlan incident, calculate possible launch zones
+    for incident in orlan_incidents:
+        if incident['drone_range']:
+            # Create a circular zone around sighting location
+            incident['possible_launch_zone'] = {
+                "center_lat": incident['latitude'],
+                "center_lon": incident['longitude'],
+                "radius_km": incident['drone_range'],
+                "analysis": incident['launch_analysis']
+            }
+
+    return {
+        "orlan_incidents": orlan_incidents,
+        "total": len(orlan_incidents),
+        "analysis_summary": "Orlan-10 incidents require maritime or cross-border launch analysis. Check AIS vessel tracking and border proximity."
     }
 
 @router.get("/{pattern_id}")
@@ -242,4 +363,51 @@ async def auto_detect_patterns(db: Session = Depends(get_db)):
     return {
         "detected_patterns": len(results),
         "patterns": results
+    }
+
+@router.get("/counter-measures/incident/{incident_id}")
+async def get_incident_recommendations(incident_id: int, db: Session = Depends(get_db)):
+    """Get counter-measure recommendations for specific incident"""
+
+    # Check if incident exists
+    incident_check = db.execute(text("SELECT id FROM incidents WHERE id = :id"), {"id": incident_id})
+    if not incident_check.fetchone():
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    query = text("""
+        SELECT
+            ir.*,
+            cm.name as cm_name,
+            cm.type as cm_type,
+            cm.description as cm_description,
+            cm.effective_against,
+            cm.range_km,
+            cm.deployment_time_hours,
+            cm.cost_estimate_eur,
+            cm.requires_authorization,
+            cm.mobile,
+            cm.specifications,
+            i.title as incident_title,
+            i.operational_class,
+            i.strategic_assessment
+        FROM incident_recommendations ir
+        JOIN counter_measures cm ON ir.counter_measure_id = cm.id
+        JOIN incidents i ON ir.incident_id = i.id
+        WHERE ir.incident_id = :incident_id
+        ORDER BY
+            CASE ir.priority
+                WHEN 'CRITICAL' THEN 1
+                WHEN 'HIGH' THEN 2
+                WHEN 'MEDIUM' THEN 3
+                WHEN 'LOW' THEN 4
+                ELSE 5
+            END
+    """)
+    result = db.execute(query, {"incident_id": incident_id})
+    recommendations = [dict(row._mapping) for row in result]
+
+    return {
+        "incident_id": incident_id,
+        "recommendations": recommendations,
+        "total": len(recommendations)
     }

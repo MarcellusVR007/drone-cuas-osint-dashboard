@@ -1,5 +1,5 @@
 {
-  "export_timestamp": "2025-11-13T08:50:15.638031",
+  "export_timestamp": "2025-11-13T09:05:45.338470",
   "tables": {
     "restricted_areas": [
       {
@@ -2958,7 +2958,7 @@
         "archived_url": null,
         "credibility_score": 0.6,
         "verification_status": "suspected",
-        "linked_incident_id": 49,
+        "linked_incident_id": 189,
         "correlation_confidence": 0.6,
         "correlation_notes": "Temporal correlation with Nov 8 Zuid-Limburg incident (24h before)",
         "created_at": "2025-11-13 07:49:50"
@@ -2979,7 +2979,7 @@
         "recipient_actor_id": null,
         "purpose": "payment_for_incident",
         "linked_post_id": 3,
-        "linked_incident_id": 49,
+        "linked_incident_id": 189,
         "block_number": 812345,
         "confirmation_count": 6,
         "source_url": "https://blockchain.info/tx/abc123",

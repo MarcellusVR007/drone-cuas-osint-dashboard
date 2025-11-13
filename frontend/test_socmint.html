@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SOCMINT Test</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #1a1a1a; color: #fff; }
+        pre { background: #2a2a2a; padding: 10px; border-radius: 5px; overflow: auto; }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+    </style>
+</head>
+<body>
+    <h1>🔍 SOCMINT Data Test</h1>
+    <div id="app">
+        <div v-if="loading">⏳ Loading...</div>
+        <div v-else>
+            <h2 :class="actors.length > 0 ? 'success' : 'error'">Actors: {{ actors.length }}</h2>
+            <pre v-if="actors.length > 0">{{ JSON.stringify(actors, null, 2) }}</pre>
+            
+            <h2 :class="threats.length > 0 ? 'success' : 'error'">Threats: {{ threats.length }}</h2>
+            <pre v-if="threats.length > 0">{{ JSON.stringify(threats, null, 2) }}</pre>
+            
+            <div v-if="error" class="error">
+                <h3>❌ Error:</h3>
+                <pre>{{ error }}</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            const actors = ref([]);
+            const threats = ref([]);
+            const loading = ref(true);
+            const error = ref(null);
+
+            onMounted(async () => {
+                console.log('Test page mounted, fetching data...');
+                try {
+                    console.log('Fetching actors...');
+                    const actorsResp = await fetch('/api/socmint/actors');
+                    console.log('Actors response:', actorsResp.status);
+                    const actorsData = await actorsResp.json();
+                    console.log('Actors data:', actorsData);
+                    actors.value = actorsData.actors || [];
+
+                    console.log('Fetching threats...');
+                    const threatsResp = await fetch('/api/socmint/threats/active');
+                    console.log('Threats response:', threatsResp.status);
+                    const threatsData = await threatsResp.json();
+                    console.log('Threats data:', threatsData);
+                    threats.value = threatsData.threats || [];
+
+                    loading.value = false;
+                    console.log('Data loaded successfully!');
+                } catch (err) {
+                    console.error('Error loading data:', err);
+                    error.value = err.toString();
+                    loading.value = false;
+                }
+            });
+
+            return { actors, threats, loading, error, JSON };
+        }
+    }).mount('#app');
+    </script>
+</body>
+</html>
