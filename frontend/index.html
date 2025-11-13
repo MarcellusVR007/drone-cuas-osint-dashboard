@@ -553,7 +553,57 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        <!-- Intelligence Patterns Section -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <i class="fas fa-network-wired"></i> Detected Intelligence Patterns
+                                        <span class="badge badge-light text-danger ml-2">{{ patterns.length }} Active</span>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div v-if="patterns.length === 0" class="alert alert-info m-3">
+                                            No patterns detected yet.
+                                        </div>
+                                        <div v-else class="list-group list-group-flush">
+                                            <div v-for="pattern in patterns" :key="pattern.id"
+                                                 class="list-group-item list-group-item-action cursor-pointer"
+                                                 @click="viewPattern(pattern.id)"
+                                                 style="cursor: pointer;">
+                                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-1">
+                                                            <i class="fas fa-exclamation-triangle text-danger"></i>
+                                                            <strong>{{ pattern.name }}</strong>
+                                                        </h6>
+                                                        <p class="mb-1 small text-muted">
+                                                            <span class="badge badge-secondary mr-2">{{ pattern.pattern_type }}</span>
+                                                            <span v-if="pattern.threat_actor" class="badge badge-danger mr-2">
+                                                                <i class="fas fa-user-secret"></i> {{ pattern.threat_actor }}
+                                                            </span>
+                                                            {{ pattern.incident_count }} incidents
+                                                        </p>
+                                                        <p v-if="pattern.geopolitical_context" class="mb-0 small">
+                                                            {{ pattern.geopolitical_context.substring(0, 150) }}...
+                                                        </p>
+                                                    </div>
+                                                    <div class="text-right ml-3">
+                                                        <div class="badge badge-warning">
+                                                            {{ (pattern.threat_actor_confidence * 100).toFixed(0) }}% confidence
+                                                        </div>
+                                                        <div class="mt-1">
+                                                            <small class="text-muted">Click for details</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-header">Top Targeted Locations</div>
