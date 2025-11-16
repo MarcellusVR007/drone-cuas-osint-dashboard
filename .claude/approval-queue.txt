@@ -2,11 +2,11 @@
 # Format: [priority] agent-id | feature-name | status | conflicts
 
 # ACTIVE APPROVALS:
-[1] agent-claude-main | flight-forensics-ui | APPROVED | none
-[2] agent-claude-main | change-protocol-setup | APPROVED | none
+# (none)
 
 # COMPLETED:
-# (none yet)
+[✓] agent-claude-main | flight-forensics-ui | MERGED | commit: ddddf60 | 2025-11-16 12:16
+[✓] agent-claude-main | change-protocol-setup | MERGED | commit: ddddf60 | 2025-11-16 12:16
 
 # When an agent wants approval, they add a line:
 # [priority] agent-id | feature-name | status | conflicts
