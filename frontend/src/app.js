@@ -37,6 +37,11 @@ const app = createApp({
         const detectionSummary = ref({});
         const showRedFlags = ref(false);
 
+        // Flight Forensics state
+        const selectedForensicIncident = ref('');
+        const forensicAnalysis = ref(null);
+        const forensicLoading = ref(false);
+
         // Sort state
         const sortColumn = ref('date');
         const sortDirection = ref('desc');
@@ -1424,6 +1429,30 @@ const app = createApp({
             return suspiciousAccounts.value.filter(acc => acc.investigation_status === 'LEA_REFERRAL').length;
         };
 
+        // Flight Forensics
+        const analyzeFlightForensics = async () => {
+            if (!selectedForensicIncident.value) {
+                forensicAnalysis.value = null;
+                return;
+            }
+
+            forensicLoading.value = true;
+            try {
+                const response = await fetch(`/api/flight-forensics/incident/${selectedForensicIncident.value}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                forensicAnalysis.value = data;
+                console.log('Flight forensics analysis loaded:', data);
+            } catch (error) {
+                console.error('Error analyzing flight forensics:', error);
+                alert('Error analyzing incident: ' + error.message);
+            } finally {
+                forensicLoading.value = false;
+            }
+        };
+
         // Lifecycle - Combined onMounted
         onMounted(async () => {
             // Load initial data
@@ -1494,6 +1523,11 @@ const app = createApp({
             fetchRedFlags,
             fetchDetectionSummary,
             getLEAReferralCount,
+            // Flight Forensics
+            selectedForensicIncident,
+            forensicAnalysis,
+            forensicLoading,
+            analyzeFlightForensics,
             sortBy,
             getSortClass,
             watch: () => {

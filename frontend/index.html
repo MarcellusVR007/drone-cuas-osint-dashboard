@@ -494,6 +494,9 @@
                     <div class="sidebar-item" @click="currentView = 'interventions'" :class="{active: currentView === 'interventions'}">
                         <i class="fas fa-shield-virus"></i> Interventions
                     </div>
+                    <div class="sidebar-item" @click="currentView = 'flight-forensics'" :class="{active: currentView === 'flight-forensics'}">
+                        <i class="fas fa-plane"></i> Flight Forensics
+                    </div>
                 </div>
 
                 <!-- Main Content -->
@@ -1450,6 +1453,117 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Flight Forensics View -->
+                    <div v-if="currentView === 'flight-forensics'">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h2 class="mb-0"><i class="fas fa-plane text-danger"></i> Flight Forensics - Post-Incident Analysis</h2>
+                                <p class="text-muted mb-0">Analyze drone incidents using flight data, launch zone calculation, and maritime correlation</p>
+                            </div>
+                        </div>
+
+                        <!-- Incident Selector -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5>Select Incident to Analyze</h5>
+                                        <select v-model="selectedForensicIncident" @change="analyzeFlightForensics" class="form-select">
+                                            <option value="">-- Choose an incident --</option>
+                                            <option v-for="inc in incidents" :key="inc.id" :value="inc.id">
+                                                #{{ inc.id }} - {{ inc.title }} ({{ formatDate(inc.sighting_date) }})
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Results -->
+                        <div v-if="forensicAnalysis" class="row">
+                            <!-- Incident Info -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">📋 Incident Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>ID:</strong> #{{ forensicAnalysis.incident.id }}</p>
+                                        <p><strong>Title:</strong> {{ forensicAnalysis.incident.title }}</p>
+                                        <p><strong>Location:</strong> {{ forensicAnalysis.incident.latitude }}, {{ forensicAnalysis.incident.longitude }}</p>
+                                        <p><strong>Date:</strong> {{ forensicAnalysis.incident.sighting_date }}</p>
+                                        <p><strong>Drone:</strong> {{ forensicAnalysis.incident.drone_description || 'Unknown' }}</p>
+                                        <p v-if="forensicAnalysis.incident.suspected_operator"><strong>Operator:</strong> {{ forensicAnalysis.incident.suspected_operator }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Launch Zone -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0">🎯 Calculated Launch Zone</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>Radius:</strong> <span class="badge bg-danger">{{ forensicAnalysis.launch_zone.radius_km }} km</span></p>
+                                        <p><strong>Center:</strong> {{ forensicAnalysis.launch_zone.center_lat.toFixed(4) }}, {{ forensicAnalysis.launch_zone.center_lon.toFixed(4) }}</p>
+                                        <p><strong>Drone Type:</strong> {{ forensicAnalysis.launch_zone.drone_type }}</p>
+                                        <p class="text-muted small">{{ forensicAnalysis.launch_zone.area_description }}</p>
+
+                                        <div v-if="forensicAnalysis.maritime_correlation && forensicAnalysis.maritime_correlation.length > 0" class="mt-3 alert alert-warning">
+                                            <strong>🚢 Maritime Launch Suspected</strong>
+                                            <ul class="mb-0 mt-2">
+                                                <li v-for="m in forensicAnalysis.maritime_correlation" :key="m.area">
+                                                    {{ m.area }}: {{ m.note }} (<span class="badge bg-danger">{{ m.priority }}</span>)
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Flights Detected -->
+                            <div class="col-md-4 mb-4">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0">✈️ Flights Detected</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h1 class="display-3 text-info">{{ forensicAnalysis.flights_detected }}</h1>
+                                        <p class="text-muted">flights in time window</p>
+                                        <p class="small" v-if="forensicAnalysis.flights_detected === 0">
+                                            No historical flight data available (incident may be too old, or no flights in area)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations -->
+                        <div v-if="forensicAnalysis && forensicAnalysis.recommendations" class="row">
+                            <div class="col-12">
+                                <div class="card border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0">🔍 Investigation Recommendations</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-for="(rec, idx) in forensicAnalysis.recommendations" :key="idx"
+                                             class="alert mb-2"
+                                             :class="rec.includes('🔴') ? 'alert-danger' : rec.includes('🟡') ? 'alert-warning' : rec.includes('🔵') ? 'alert-info' : rec.includes('🟢') ? 'alert-success' : 'alert-secondary'">
+                                            {{ rec }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loading -->
+                        <div v-if="forensicLoading" class="text-center my-5">
+                            <div class="loading"></div>
+                            <p>Analyzing incident...</p>
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,14 @@
+# Approval Queue - Multi-Agent Coordination
+# Format: [priority] agent-id | feature-name | status | conflicts
+
+# ACTIVE APPROVALS:
+[1] agent-claude-main | flight-forensics-ui | APPROVED | none
+[2] agent-claude-main | change-protocol-setup | APPROVED | none
+
+# COMPLETED:
+# (none yet)
+
+# When an agent wants approval, they add a line:
+# [priority] agent-id | feature-name | status | conflicts
+#
+# Marcel reviews and updates status to: APPROVED, REJECTED, or MERGE-WHEN-READY

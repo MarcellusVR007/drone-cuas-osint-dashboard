@@ -42,12 +42,13 @@ async def startup():
     print("✓ OSINT CUAS Dashboard Ready")
 
 # Import and include routers
-from backend.routers import incidents, drone_types, restricted_areas, patterns, interventions, general, data_sources, sources, intelligence, socmint, blockchain, forums
+from backend.routers import incidents, drone_types, restricted_areas, patterns, interventions, general, data_sources, sources, intelligence, socmint, blockchain, forums, flights, flight_forensics
 
 app.include_router(general.router, prefix="/api", tags=["general"])
 app.include_router(data_sources.router, prefix="/api/data-sources", tags=["data-sources"])
 app.include_router(sources.router, prefix="/api/sources", tags=["sources"])
 app.include_router(intelligence.router, prefix="/api/intelligence", tags=["intelligence"])
+app.include_router(flights.router, prefix="/api/flights", tags=["flights"])
 app.include_router(incidents.router, prefix="/api/incidents", tags=["incidents"])
 app.include_router(drone_types.router, prefix="/api/drone-types", tags=["drone-types"])
 app.include_router(restricted_areas.router, prefix="/api/restricted-areas", tags=["restricted-areas"])
@@ -56,6 +57,7 @@ app.include_router(interventions.router, prefix="/api/interventions", tags=["int
 app.include_router(socmint.router, prefix="/api/socmint", tags=["socmint"])
 app.include_router(blockchain.router, prefix="/api/blockchain", tags=["blockchain"])
 app.include_router(forums.router, prefix="/api/forums", tags=["forums"])
+app.include_router(flight_forensics.router, prefix="/api/flight-forensics", tags=["flight-forensics"])
 
 # Mount static files
 if os.path.exists("frontend/src"):
@@ -71,11 +73,18 @@ async def health_check():
 async def serve_frontend():
     return FileResponse("frontend/index.html")
 
+@app.get("/forensics")
+async def serve_forensics():
+    """Flight forensics demo page"""
+    return FileResponse("frontend/flight_forensics_demo.html")
+
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     """Serve SPA - return index.html for all non-API routes"""
     if full_path.startswith("api/"):
         return {"detail": "Not Found"}, 404
+    if full_path.endswith(".html"):
+        return FileResponse(f"frontend/{full_path}")
     return FileResponse("frontend/index.html")
 
 if __name__ == "__main__":
