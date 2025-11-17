@@ -110,6 +110,7 @@ class Incident(Base):
 
     # Attribution Chain (linking to Telegram/SOCMINT)
     telegram_post_id = Column(Integer, ForeignKey("social_media_posts.id"), nullable=True)  # Link to recruitment/bounty post
+    telegram_post = relationship("SocialMediaPost", back_populates="incidents")
     handler_username = Column(String(100), nullable=True)  # Telegram handler/recruiter username
     payment_wallet_address = Column(String(100), nullable=True)  # Bitcoin wallet from Telegram post
     attribution_chain = Column(Text, nullable=True)  # JSON: full chain from handler to operative
@@ -166,6 +167,20 @@ class Pattern(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     incidents = relationship("Incident", backref="pattern")
+
+class SocialMediaPost(Base):
+    """Telegram/social media posts for GRU recruitment monitoring"""
+    __tablename__ = "social_media_posts"
+
+    id = Column(Integer, primary_key=True)
+    channel_name = Column(String(255), nullable=False, index=True)
+    post_date = Column(DateTime, nullable=False, index=True)
+    content = Column(Text)
+    post_url = Column(String(500))
+    gru_recruitment_score = Column(Integer, default=0)  # 0-100 score for recruitment indicators
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    incidents = relationship("Incident", back_populates="telegram_post")
 
 class DataSource(Base):
     """Track where intelligence comes from"""
