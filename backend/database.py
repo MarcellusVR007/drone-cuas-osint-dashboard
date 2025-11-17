@@ -50,6 +50,7 @@ def import_json_data():
     """Import data from JSON export if available"""
     import json
     from pathlib import Path
+    import sqlite3
 
     export_path = Path(__file__).parent.parent / "data" / "database_export.json"
 
@@ -64,11 +65,20 @@ def import_json_data():
     print(f"📥 Importing data from {export_path.name}")
 
     # Use raw SQL connection for bulk import
-    import sqlite3
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     try:
+        # Check if tables exist
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        existing_tables = [row[0] for row in cursor.fetchall()]
+
+        if not existing_tables:
+            print("⚠️  No tables found in database - tables must be created first via init_db()")
+            return False
+
+        print(f"✓ Found {len(existing_tables)} tables in database")
+
         with open(export_path, 'r', encoding='utf-8') as f:
             export_data = json.load(f)
 
