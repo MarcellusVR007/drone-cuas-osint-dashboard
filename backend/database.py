@@ -98,8 +98,18 @@ def import_json_data():
                 cursor.execute(f"DELETE FROM {table_name}")
                 conn.commit()
 
-            # Get column names from first row
-            columns = list(rows[0].keys())
+            # Get columns that exist in the target table
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            table_columns = [row[1] for row in cursor.fetchall()]
+
+            # Only import columns that exist in both JSON and table
+            json_columns = list(rows[0].keys())
+            columns = [col for col in json_columns if col in table_columns]
+
+            if len(columns) < len(json_columns):
+                skipped = [col for col in json_columns if col not in table_columns]
+                print(f"  ⚠️  {table_name}: Skipping {len(skipped)} unknown columns: {', '.join(skipped[:5])}")
+
             placeholders = ','.join(['?' for _ in columns])
             column_names = ','.join(columns)
 
