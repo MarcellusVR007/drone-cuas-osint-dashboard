@@ -455,6 +455,23 @@
             color: var(--danger);
             margin: 0 10px;
         }
+        /* Recruitment Pathway Styling */
+        .pathway-step {
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            min-height: 200px;
+        }
+        .pathway-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -485,14 +502,11 @@
                     <div class="sidebar-item" @click="currentView = 'patterns'" :class="{active: currentView === 'patterns'}">
                         <i class="fas fa-network-wired"></i> Patterns
                     </div>
-                    <div class="sidebar-item" @click="currentView = 'threat-intel'" :class="{active: currentView === 'threat-intel'}">
-                        <i class="fas fa-user-secret"></i> Threat Intel
-                    </div>
+                    <a href="threat_intel.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-brain"></i> Threat Intel Wiki
+                    </a>
                     <div class="sidebar-item" @click="currentView = 'forums'" :class="{active: currentView === 'forums'}">
                         <i class="fas fa-comments"></i> Forum Monitoring
-                    </div>
-                    <div class="sidebar-item" @click="currentView = 'interventions'" :class="{active: currentView === 'interventions'}">
-                        <i class="fas fa-shield-virus"></i> Interventions
                     </div>
                     <div class="sidebar-item" @click="currentView = 'flight-forensics'" :class="{active: currentView === 'flight-forensics'}">
                         <i class="fas fa-plane"></i> Flight Forensics
@@ -520,14 +534,14 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="stat-card">
-                                    <div class="stat-number">{{ stats.summary?.total_interventions || 0 }}</div>
-                                    <div class="stat-label">Interventions</div>
+                                    <div class="stat-number">{{ stats.summary?.total_patterns || 0 }}</div>
+                                    <div class="stat-label">Detected Patterns</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="stat-card">
-                                    <div class="stat-number">{{ stats.summary?.total_patterns || 0 }}</div>
-                                    <div class="stat-label">Detected Patterns</div>
+                                    <div class="stat-number">{{ stats.summary?.unique_drone_types || 0 }}</div>
+                                    <div class="stat-label">Drone Types</div>
                                 </div>
                             </div>
                         </div>
@@ -573,9 +587,9 @@
                                                     <td>{{ incident.purpose_assessment || 'Unknown' }}</td>
                                                     <td>{{ (incident.confidence_score * 100).toFixed(0) }}%</td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-outline-danger" @click="viewIncident(incident.id)">
-                                                            <i class="fas fa-eye"></i>
-                                                        </button>
+                                                        <a :href="`incident_detail.html?id=${incident.id}`" class="btn btn-sm btn-outline-danger" title="View Launch Zone Analysis">
+                                                            <i class="fas fa-crosshairs"></i> Launch Zone
+                                                        </a>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -782,6 +796,136 @@
                             </div>
                         </div>
 
+                        <!-- Recruitment Pathway Visualization -->
+                        <div class="card mb-4 border-warning">
+                            <div class="card-header bg-warning text-dark">
+                                <h4 class="mb-0"><i class="fas fa-project-diagram"></i> Spotter Recruitment Pathway</h4>
+                                <small>How Telegram bounties lead to local surveillance and drone incidents</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <!-- Step 1: Telegram Post -->
+                                    <div class="col-md-2">
+                                        <div class="pathway-step">
+                                            <div class="pathway-icon bg-primary">
+                                                <i class="fab fa-telegram fa-2x"></i>
+                                            </div>
+                                            <h6 class="mt-2">STEP 1</h6>
+                                            <p class="small"><strong>Telegram Bounty Post</strong></p>
+                                            <p class="small text-muted">"€500 for F-35 photos at Volkel"</p>
+                                            <div class="badge bg-primary">12 active bounties</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-arrow-right fa-2x text-muted"></i>
+                                    </div>
+
+                                    <!-- Step 2: Local Recruitment -->
+                                    <div class="col-md-2">
+                                        <div class="pathway-step">
+                                            <div class="pathway-icon bg-warning">
+                                                <i class="fas fa-user-plus fa-2x"></i>
+                                            </div>
+                                            <h6 class="mt-2">STEP 2</h6>
+                                            <p class="small"><strong>Local Spotter Recruited</strong></p>
+                                            <p class="small text-muted">Opportunist near base</p>
+                                            <div class="badge bg-warning text-dark">Undetectable</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-arrow-right fa-2x text-muted"></i>
+                                    </div>
+
+                                    <!-- Step 3: Surveillance -->
+                                    <div class="col-md-2">
+                                        <div class="pathway-step">
+                                            <div class="pathway-icon bg-info">
+                                                <i class="fas fa-camera fa-2x"></i>
+                                            </div>
+                                            <h6 class="mt-2">STEP 3</h6>
+                                            <p class="small"><strong>Surveillance Activity</strong></p>
+                                            <p class="small text-muted">Photos, schedules, patterns</p>
+                                            <div class="badge bg-info">Detectable</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-arrow-right fa-2x text-muted"></i>
+                                    </div>
+
+                                    <!-- Step 4: Intelligence Delivery -->
+                                    <div class="col-md-2">
+                                        <div class="pathway-step">
+                                            <div class="pathway-icon bg-secondary">
+                                                <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                                            </div>
+                                            <h6 class="mt-2">STEP 4</h6>
+                                            <p class="small"><strong>Intel Delivered</strong></p>
+                                            <p class="small text-muted">Via Telegram/encrypted</p>
+                                            <div class="badge bg-secondary">Payment made</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1 d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-arrow-right fa-2x text-danger"></i>
+                                    </div>
+
+                                    <!-- Step 5: Drone Incident -->
+                                    <div class="col-md-2">
+                                        <div class="pathway-step">
+                                            <div class="pathway-icon bg-danger">
+                                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                            </div>
+                                            <h6 class="mt-2">STEP 5</h6>
+                                            <p class="small"><strong>Drone Incident</strong></p>
+                                            <p class="small text-muted">Informed by spotter intel</p>
+                                            <div class="badge bg-danger">Security breach</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timeline Example -->
+                                <div class="alert alert-dark mt-4">
+                                    <h6><i class="fas fa-clock"></i> Example Timeline:</h6>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <strong>Day 1:</strong> Telegram bounty posted (€500 for Volkel photos)<br>
+                                            <small class="text-muted">Channel: Военная хроника</small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong>Day 3-7:</strong> Local spotter conducts surveillance<br>
+                                            <small class="text-muted">Photos, flight schedules collected</small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong>Day 14:</strong> Drone incident at Volkel<br>
+                                            <small class="text-muted">Armed with spotter intelligence</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Counter-Measures -->
+                                <div class="alert alert-success mt-3">
+                                    <h6><i class="fas fa-shield-alt"></i> Counter-Measures:</h6>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Step 1-2:</strong> Monitor Telegram channels<br>
+                                            <small class="text-muted">OSINT dashboard (this tool)</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Step 3:</strong> Increased patrols near bases<br>
+                                            <small class="text-muted">When bounty detected</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Step 4:</strong> Identify suspicious behavior<br>
+                                            <small class="text-muted">Photos, loitering, cameras</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Step 5:</strong> Enhanced air defense<br>
+                                            <small class="text-muted">Prevent incident</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Classified Incidents -->
                         <div v-if="strategicAnalysis && strategicAnalysis.all_classified_incidents" class="card mb-4">
                             <div class="card-header bg-danger text-white">
@@ -853,72 +997,6 @@
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Interventions View -->
-                    <div v-if="currentView === 'interventions'">
-                        <h2 class="mb-4"><i class="fas fa-shield-virus text-danger"></i> Interventions & Countermeasures</h2>
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="text-center">
-                                            <div class="stat-number text-success">{{ interventionStats?.total || 0 }}</div>
-                                            <div class="stat-label">Total Interventions</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="text-center">
-                                            <div class="stat-number text-success">{{ interventionStats?.successful || 0 }}</div>
-                                            <div class="stat-label">Successful</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="text-center">
-                                            <div class="stat-number text-success">{{ interventionStats?.success_rate || 0 }}%</div>
-                                            <div class="stat-label">Success Rate</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-body">
-                                <div v-if="loading" class="text-center">
-                                    <div class="loading"></div>
-                                </div>
-                                <table v-else class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Type</th>
-                                            <th>Outcome</th>
-                                            <th>Avg Response Time</th>
-                                            <th>Success Rate</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="intv in interventionEffectiveness" :key="intv.intervention_type">
-                                            <td><strong>{{ intv.intervention_type }}</strong></td>
-                                            <td>{{ intv.successful }}/{{ intv.total }}</td>
-                                            <td>{{ intv.avg_response_time_minutes }} min</td>
-                                            <td>
-                                                <span :class="`text-${intv.success_rate > 70 ? 'success' : intv.success_rate > 40 ? 'warning' : 'danger'}`">
-                                                    {{ intv.success_rate }}%
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     </div>

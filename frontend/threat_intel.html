@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Intelligence Wiki - Drone CUAS OSINT</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --success: #28a745;
+            --info: #17a2b8;
+            --dark: #343a40;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
+        }
+
+        h1, h2, h3, h4, h5, h6, p, span, div, label, li {
+            color: #ffffff !important;
+        }
+
+        .text-muted {
+            color: #b8b8b8 !important;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .wiki-section {
+            margin-bottom: 2rem;
+        }
+
+        .threat-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+
+        .badge-critical { background: rgba(220, 53, 69, 0.3); border: 2px solid #dc3545; }
+        .badge-high { background: rgba(255, 193, 7, 0.3); border: 2px solid #ffc107; }
+        .badge-medium { background: rgba(23, 162, 184, 0.3); border: 2px solid #17a2b8; }
+
+        .hypothesis-box {
+            padding: 1.5rem;
+            border-left: 4px solid;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        .h1-box { border-color: #ffc107; }
+        .h2-box { border-color: #17a2b8; }
+
+        .recommendation {
+            background: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid #28a745;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .pattern-card {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="btn btn-outline-light back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <div class="container-fluid mt-5 pt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-4">
+                    <i class="fas fa-brain text-danger"></i>
+                    Threat Intelligence Wiki
+                </h1>
+                <p class="lead">Pattern Analysis & Attribution Assessment</p>
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h3><i class="fas fa-exclamation-triangle text-warning"></i> Executive Summary</h3>
+                    <hr>
+                    <p>
+                        Based on OSINT analysis of <strong>49 drone incidents</strong> in the Benelux region (primarily Netherlands),
+                        we observe a diverse threat landscape with multiple attribution categories. <strong>No evidence</strong> of active
+                        local recruitment has been detected in Dutch far-right Telegram channels.
+                    </p>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <span class="threat-badge badge-critical">
+                                <i class="fas fa-skull-crossbones"></i> Military Drones Detected
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="threat-badge badge-high">
+                                <i class="fas fa-user-secret"></i> State Actor Likely
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="threat-badge badge-medium">
+                                <i class="fas fa-users"></i> No Recruitment Found
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hypotheses -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <h4><i class="fas fa-question-circle text-warning"></i> H1: Local Recruitment</h4>
+                    <div class="hypothesis-box h1-box">
+                        <h5>Theory</h5>
+                        <p>GRU recruiting Dutch sympathizers via Telegram (FvD, Café Weltschmerz) to conduct drone operations</p>
+
+                        <h5 class="mt-3">Evidence</h5>
+                        <ul>
+                            <li><strong>27 posts</strong> with potential recruitment indicators</li>
+                            <li>Mostly <strong>false positives</strong> (e.g., "Cubans joining Russian military")</li>
+                            <li>Geographic intelligence (Benelux mentions) ≠ recruitment</li>
+                            <li><strong>0 direct recruitment offers</strong> detected</li>
+                        </ul>
+
+                        <h5 class="mt-3">Assessment</h5>
+                        <p class="mb-0">
+                            <span class="badge bg-warning">26% Likelihood - UNLIKELY</span><br>
+                            <small class="text-muted">No credible recruitment evidence found. Dutch channels contain propaganda but not active recruitment.</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <h4><i class="fas fa-chess-knight text-info"></i> H2: State Actors</h4>
+                    <div class="hypothesis-box h2-box">
+                        <h5>Theory</h5>
+                        <p>Russian intelligence professionals on tourist/business visas conducting ops without local recruitment</p>
+
+                        <h5 class="mt-3">Evidence</h5>
+                        <ul>
+                            <li><strong>Military-grade drones</strong> detected (Orlan-10, Gerbera/Shahed-like)</li>
+                            <li><strong>Professional operations</strong> (timing, targets, exfiltration)</li>
+                            <li><strong>No recruitment footprint</strong> in monitored channels</li>
+                            <li>Visa-free Schengen access for Russians (before Ukraine war restrictions)</li>
+                        </ul>
+
+                        <h5 class="mt-3">Assessment</h5>
+                        <p class="mb-0">
+                            <span class="badge bg-info">53% Likelihood - POSSIBLE</span><br>
+                            <small class="text-muted">Professional MO + no recruitment signals + military hardware = state actor profile matches better</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drone Type Analysis -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h3><i class="fas fa-drone text-danger"></i> Drone Type Analysis</h3>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="pattern-card">
+                                <h5><i class="fas fa-fighter-jet text-danger"></i> Military Drones</h5>
+                                <p><strong>Examples:</strong> Orlan-10, Gerbera (Shahed-like)</p>
+                                <p><strong>Range:</strong> 50-120 km</p>
+                                <p><strong>Attribution:</strong> State actors (Russia, Ukraine)</p>
+                                <p><strong>Implication:</strong> High-value intelligence gathering or pre-attack reconnaissance</p>
+                                <span class="badge bg-danger">CRITICAL THREAT</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="pattern-card">
+                                <h5><i class="fas fa-plane text-warning"></i> Commercial Drones</h5>
+                                <p><strong>Examples:</strong> DJI Matrice, Autel EVO</p>
+                                <p><strong>Range:</strong> 15-50 km</p>
+                                <p><strong>Attribution:</strong> <strong>AMBIGUOUS</strong> - could be state OR local operators</p>
+                                <p><strong>Warning:</strong> Available on Amazon/AliExpress - range ≠ state actor proof</p>
+                                <span class="badge bg-warning">HIGH THREAT</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="pattern-card">
+                                <h5><i class="fas fa-camera text-info"></i> Consumer Drones</h5>
+                                <p><strong>Examples:</strong> DJI Mini, small quadcopters</p>
+                                <p><strong>Range:</strong> 5-10 km</p>
+                                <p><strong>Attribution:</strong> Local operators, hobbyists, criminals</p>
+                                <p><strong>Note:</strong> Pilot must be very close to incident location</p>
+                                <span class="badge bg-info">MEDIUM THREAT</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendation mt-4">
+                        <strong><i class="fas fa-exclamation-circle"></i> Critical Insight:</strong>
+                        Large commercial drones (20-50km range) can be purchased by ANYONE for €1000-5000.
+                        <strong>Range alone does NOT prove state actor.</strong> Look for MO, targets, exfiltration success, and hardware sophistication.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Analysis -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h3><i class="fas fa-crosshairs text-danger"></i> Target Analysis</h3>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>High-Value Targets</h5>
+                            <ul>
+                                <li><strong>Schiphol Airport</strong> - Critical infrastructure, military logistics hub</li>
+                                <li><strong>Military bases</strong> - Volkel (F-35s), Gilze-Rijen (NATO)</li>
+                                <li><strong>Port of Rotterdam</strong> - Largest EU port, NATO supply route</li>
+                                <li><strong>Brussels NATO HQ</strong> - Strategic command center</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Attribution Indicators</h5>
+                            <ul>
+                                <li><strong>Military targets</strong> → State actor reconnaissance</li>
+                                <li><strong>Airport operations</strong> → Intelligence gathering OR disruption attempt</li>
+                                <li><strong>Random locations</strong> → Hobbyists, testing, or low-level recon</li>
+                                <li><strong>Repeated sites</strong> → Systematic intelligence collection campaign</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Geographic Patterns -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h3><i class="fas fa-map-marked-alt text-info"></i> Geographic Patterns</h3>
+                    <hr>
+                    <p><strong>Primary Concentration:</strong> Netherlands (Randstad region + southern military bases)</p>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h5>Netherlands</h5>
+                            <ul>
+                                <li>Schiphol area (multiple incidents)</li>
+                                <li>Rotterdam/Den Haag corridor</li>
+                                <li>Eindhoven (near Volkel airbase)</li>
+                                <li>Southern border (Maastricht, Limburg)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Belgium</h5>
+                            <ul>
+                                <li>Brussels (NATO HQ area)</li>
+                                <li>Kleine Brogel (F-16 base)</li>
+                                <li>Antwerp port</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h5>Wider EU</h5>
+                            <ul>
+                                <li>Poland (NATO eastern flank)</li>
+                                <li>Denmark (Baltic monitoring)</li>
+                                <li>Germany (US bases)</li>
+                                <li>Baltics (Russian border)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="recommendation mt-4">
+                        <strong><i class="fas fa-lightbulb"></i> Pattern:</strong>
+                        Incidents cluster around NATO infrastructure, F-35 bases, and Ukraine military supply routes.
+                        This suggests strategic intelligence collection aligned with Russian interests.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modus Operandi -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h3><i class="fas fa-user-secret text-warning"></i> Observed Modus Operandi</h3>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Professional Characteristics (State Actor)</h5>
+                            <ul>
+                                <li><strong>Timing:</strong> Night operations, low visibility conditions</li>
+                                <li><strong>Targets:</strong> High-value military/infrastructure sites</li>
+                                <li><strong>Equipment:</strong> Military-grade or high-end commercial drones</li>
+                                <li><strong>Exfiltration:</strong> Clean getaway, no arrests</li>
+                                <li><strong>Coordination:</strong> Multiple simultaneous incidents</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Amateur Characteristics (Local Operators)</h5>
+                            <ul>
+                                <li><strong>Timing:</strong> Daylight, weekends, visible operations</li>
+                                <li><strong>Targets:</strong> Random locations, no strategic value</li>
+                                <li><strong>Equipment:</strong> Consumer drones (DJI Mini, etc.)</li>
+                                <li><strong>Arrests:</strong> Caught on-site or identified via registration</li>
+                                <li><strong>Mistakes:</strong> GPS logging, return-to-home fails</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h3><i class="fas fa-shield-alt text-success"></i> Recommendations</h3>
+                    <hr>
+
+                    <h5>1. Continue Monitoring (Low Priority)</h5>
+                    <div class="recommendation">
+                        Keep Telegram monitoring active but <strong>do NOT over-prioritize</strong>. No recruitment detected after 486 posts analyzed.
+                        Alert only if ACTUAL recruitment language appears (payment offers, task assignments, crypto addresses).
+                    </div>
+
+                    <h5>2. Focus on Launch Zone Analysis</h5>
+                    <div class="recommendation">
+                        Use drone range data to identify pilot operating zones. For consumer drones (5-10km), search within tight radius.
+                        For military drones (50-120km), pilot could be far away or across border.
+                    </div>
+
+                    <h5>3. Enhance Detection Near Critical Sites</h5>
+                    <div class="recommendation">
+                        Deploy RF detection around: Schiphol, Volkel, Gilze-Rijen, Rotterdam Port.
+                        State actors likely to repeat reconnaissance before major operations.
+                    </div>
+
+                    <h5>4. Track Arrests & Prosecutions</h5>
+                    <div class="recommendation">
+                        Monitor: Politie.nl, OM.nl (prosecutions), Rechtspraak.nl (court cases).
+                        Successful prosecutions will reveal if perpetrators are local amateurs or foreign nationals.
+                    </div>
+
+                    <h5>5. Intelligence Sharing</h5>
+                    <div class="recommendation">
+                        Share findings with: AIVD (Dutch intelligence), MIVD (military intel), Europol, NATO CUAS working groups.
+                        Cross-reference with Polish, Danish, German incidents for pattern correlation.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conclusion -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4 border-warning">
+                    <h3><i class="fas fa-clipboard-check text-warning"></i> Bottom Line</h3>
+                    <hr>
+                    <p class="lead">
+                        <strong>Most likely attribution: State actors (H2)</strong> conducting systematic intelligence collection
+                        without local recruitment. No credible evidence of GRU recruitment in Dutch Telegram channels.
+                    </p>
+                    <p>
+                        <strong>Key Caveat:</strong> Large commercial drones (20-50km range) blur the line between amateur and professional.
+                        A dedicated local sympathizer COULD purchase high-end equipment and conduct operations.
+                        <strong>Range ≠ definitive attribution.</strong>
+                    </p>
+                    <p class="mb-0">
+                        <strong>Monitoring Posture:</strong> Maintain Telegram monitoring at LOW priority.
+                        Focus investigative resources on launch zone analysis, RF detection, and tracking arrests/prosecutions
+                        for definitive attribution.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

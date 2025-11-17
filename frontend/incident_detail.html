@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Detail - Launch Zone Analysis</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Leaflet Maps -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --success: #28a745;
+            --info: #17a2b8;
+            --dark: #343a40;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: #ffffff;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        #map {
+            height: 600px;
+            border-radius: 10px;
+            border: 2px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge-custom {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        h1, h2, h3, h4, h5, h6, p, span, div, label {
+            color: #ffffff !important;
+        }
+
+        .text-muted {
+            color: #b8b8b8 !important;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="btn btn-outline-light back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <div class="container-fluid mt-5 pt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-4">
+                    <i class="fas fa-crosshairs text-danger"></i>
+                    Incident Launch Zone Analysis
+                </h1>
+                <p class="lead" id="incidentTitle">Loading incident...</p>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="fas fa-calendar fa-2x text-info mb-2"></i>
+                    <div class="stat-number text-info" id="incidentDate">-</div>
+                    <p class="stat-label">Date</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="fas fa-drone fa-2x text-warning mb-2"></i>
+                    <div class="stat-number text-warning" id="droneType">-</div>
+                    <p class="stat-label">Drone Type</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="fas fa-ruler fa-2x text-danger mb-2"></i>
+                    <div class="stat-number text-danger" id="droneRange">-</div>
+                    <p class="stat-label">Max Range</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="fas fa-clock fa-2x text-success mb-2"></i>
+                    <div class="stat-number text-success" id="droneEndurance">-</div>
+                    <p class="stat-label">Flight Time</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map + Legend -->
+        <div class="row mb-4">
+            <div class="col-lg-9">
+                <div class="card p-3">
+                    <h4><i class="fas fa-map-marked-alt"></i> Launch Zone Visualization</h4>
+                    <p class="text-muted">Red marker = incident location. Blue circle = drone max range. Orange circle = estimated pilot location zone.</p>
+                    <div id="map"></div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="card p-4">
+                    <h5><i class="fas fa-info-circle"></i> Legend</h5>
+                    <hr>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #dc3545;"></div>
+                        <span>Incident Location</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: rgba(0, 123, 255, 0.3); border-color: #007bff;"></div>
+                        <span>Drone Max Range</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: rgba(255, 165, 0, 0.2); border-color: orange;"></div>
+                        <span>Pilot Location Zone</span>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5><i class="fas fa-lightbulb"></i> Analysis</h5>
+                    <p class="small" id="analysisText">
+                        Loading analysis...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Incident Details -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <h5><i class="fas fa-file-alt"></i> Incident Details</h5>
+                    <hr>
+                    <table class="table table-dark table-borderless">
+                        <tr>
+                            <td><strong>Location:</strong></td>
+                            <td id="location">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Coordinates:</strong></td>
+                            <td id="coordinates">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Time:</strong></td>
+                            <td id="time">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Duration:</strong></td>
+                            <td id="duration">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Altitude:</strong></td>
+                            <td id="altitude">-</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <h5><i class="fas fa-cogs"></i> Drone Specifications</h5>
+                    <hr>
+                    <table class="table table-dark table-borderless">
+                        <tr>
+                            <td><strong>Manufacturer:</strong></td>
+                            <td id="manufacturer">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Model:</strong></td>
+                            <td id="model">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Max Range:</strong></td>
+                            <td id="specRange">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Endurance:</strong></td>
+                            <td id="specEndurance">-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Max Altitude:</strong></td>
+                            <td id="specAltitude">-</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h5><i class="fas fa-align-left"></i> Description</h5>
+                    <hr>
+                    <p id="description">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get incident ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const incidentId = urlParams.get('id');
+
+        let map;
+        let incidentData;
+        let droneTypeData;
+
+        async function loadIncident() {
+            try {
+                // Load incident
+                const response = await fetch(`/api/incidents/${incidentId}`);
+                incidentData = await response.json();
+
+                // Load drone type if available
+                if (incidentData.drone_type_id) {
+                    const droneResponse = await fetch(`/api/drone-types/${incidentData.drone_type_id}`);
+                    droneTypeData = await droneResponse.json();
+                } else {
+                    // Default specs for unknown drones
+                    droneTypeData = {
+                        model: incidentData.drone_description || "Unknown",
+                        manufacturer: "Unknown",
+                        range_km: 10,
+                        endurance_minutes: 30,
+                        max_altitude_m: 500
+                    };
+                }
+
+                // Update UI
+                updateUI();
+                initializeMap();
+            } catch (error) {
+                console.error('Error loading incident:', error);
+                alert('Error loading incident details');
+            }
+        }
+
+        function updateUI() {
+            // Title
+            document.getElementById('incidentTitle').textContent = incidentData.title;
+
+            // Stats cards
+            document.getElementById('incidentDate').textContent = new Date(incidentData.sighting_date).toLocaleDateString();
+            document.getElementById('droneType').textContent = droneTypeData.model;
+            document.getElementById('droneRange').textContent = droneTypeData.range_km ? `${droneTypeData.range_km} km` : 'Unknown';
+            document.getElementById('droneEndurance').textContent = droneTypeData.endurance_minutes ? `${droneTypeData.endurance_minutes} min` : 'Unknown';
+
+            // Details
+            document.getElementById('location').textContent = incidentData.title.split('|')[0] || 'Unknown';
+            document.getElementById('coordinates').textContent = `${incidentData.latitude.toFixed(4)}, ${incidentData.longitude.toFixed(4)}`;
+            document.getElementById('time').textContent = incidentData.sighting_time || 'Not specified';
+            document.getElementById('duration').textContent = incidentData.duration_minutes ? `${incidentData.duration_minutes} minutes` : 'Not specified';
+            document.getElementById('altitude').textContent = incidentData.altitude_m ? `${incidentData.altitude_m} meters` : 'Not specified';
+
+            // Drone specs
+            document.getElementById('manufacturer').textContent = droneTypeData.manufacturer || 'Unknown';
+            document.getElementById('model').textContent = droneTypeData.model || 'Unknown';
+            document.getElementById('specRange').textContent = droneTypeData.range_km ? `${droneTypeData.range_km} km` : 'Unknown';
+            document.getElementById('specEndurance').textContent = droneTypeData.endurance_minutes ? `${droneTypeData.endurance_minutes} minutes` : 'Unknown';
+            document.getElementById('specAltitude').textContent = droneTypeData.max_altitude_m ? `${droneTypeData.max_altitude_m} meters` : 'Unknown';
+
+            // Description
+            document.getElementById('description').innerHTML = incidentData.description;
+
+            // Analysis
+            const range = droneTypeData.range_km || 10;
+            let rangeAssessment = '';
+            if (range > 50) {
+                rangeAssessment = 'This is a long-range military-grade drone. <strong>Could indicate state actor, BUT</strong> large commercial drones (€1000-5000 on Amazon) can also reach 20-50km.';
+            } else if (range > 20) {
+                rangeAssessment = '<strong>AMBIGUOUS:</strong> Professional/commercial-grade equipment available to anyone. High-end DJI/Autel drones reach this range. <strong>Cannot conclude state actor from range alone.</strong>';
+            } else if (range > 10) {
+                rangeAssessment = 'Mid-range commercial drone. Widely available to consumers. Pilot had to be relatively close.';
+            } else {
+                rangeAssessment = 'Consumer-grade drone (DJI Mini, small quadcopter). Pilot must have been very close to incident location.';
+            }
+
+            const analysisText = `
+                Based on the drone specifications, the pilot must have been within a <strong>${range} km radius</strong>
+                of the incident location.
+                <br><br>
+                <strong>Attribution Assessment:</strong> ${rangeAssessment}
+                <br><br>
+                The blue circle shows the maximum operating range. The pilot operated somewhere within this area.
+                Look for MO, targets, and exfiltration success for attribution - not just range.
+            `;
+            document.getElementById('analysisText').innerHTML = analysisText;
+        }
+
+        function initializeMap() {
+            const lat = incidentData.latitude;
+            const lon = incidentData.longitude;
+            const range = (droneTypeData.range_km || 10) * 1000; // Convert to meters
+
+            // Initialize map
+            map = L.map('map').setView([lat, lon], 11);
+
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add incident marker (red)
+            L.marker([lat, lon], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<i class="fas fa-map-marker-alt fa-3x" style="color: #dc3545;"></i>',
+                    iconSize: [30, 42],
+                    iconAnchor: [15, 42]
+                })
+            }).addTo(map)
+              .bindPopup(`<strong>Incident Location</strong><br>${incidentData.title}`);
+
+            // Add drone range circle (blue)
+            L.circle([lat, lon], {
+                radius: range,
+                color: '#007bff',
+                fillColor: '#007bff',
+                fillOpacity: 0.1,
+                weight: 2
+            }).addTo(map)
+              .bindPopup(`<strong>Drone Max Range</strong><br>${droneTypeData.range_km} km radius`);
+
+            // Add pilot location circle (orange - slightly smaller to show inside drone range)
+            L.circle([lat, lon], {
+                radius: range * 0.95, // 95% of drone range
+                color: 'orange',
+                fillColor: 'orange',
+                fillOpacity: 0.05,
+                weight: 2,
+                dashArray: '10, 10'
+            }).addTo(map)
+              .bindPopup(`<strong>Pilot Location Zone</strong><br>Operator was within this area`);
+
+            // Fit bounds to show all circles
+            map.fitBounds(L.circle([lat, lon], range).getBounds());
+        }
+
+        // Load on page load
+        if (incidentId) {
+            loadIncident();
+        } else {
+            alert('No incident ID specified');
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
