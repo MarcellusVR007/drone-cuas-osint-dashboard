@@ -81,6 +81,10 @@ class PostIncidentFlightAnalyzer:
                 print(f"   ⚠️  No historical data available (too old or API limit)")
                 return []
 
+            if response.status_code == 403:
+                print(f"   ⚠️  OpenSky API rate limited (403) - using fallback data")
+                return []
+
             response.raise_for_status()
             flights = response.json()
 

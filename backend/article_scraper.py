@@ -109,6 +109,26 @@ class ArticleScraper:
             ('TVN24', 'https://tvn24.pl/feeds/'),
             ('Onet', 'https://wiadomosci.onet.pl/rss.xml'),
         ],
+        'DK': [
+            ('DR Nyheder', 'https://www.dr.dk/nyheder/service/feeds/allenyheder'),
+            ('TV2 News', 'https://feeds.tv2.dk/rss/nyheder'),
+            ('The Local DK', 'https://www.thelocal.dk/feed/'),
+        ],
+        'UK': [
+            ('BBC News', 'https://feeds.bbci.co.uk/news/rss.xml'),
+            ('The Guardian', 'https://www.theguardian.com/uk/rss'),
+            ('Reuters UK', 'https://www.reutersagency.com/feed/?taxonomy=best-topics&post_type=best'),
+        ],
+        'SE': [
+            ('SVT Nyheter', 'https://www.svt.se/nyheter/rss.xml'),
+            ('Dagens Nyheter', 'https://www.dn.se/rss/'),
+            ('The Local SE', 'https://www.thelocal.se/feed/'),
+        ],
+        'NO': [
+            ('NRK Nyheter', 'https://www.nrk.no/toppsaker.rss'),
+            ('VG Nyheter', 'https://www.vg.no/rss/feed/'),
+            ('The Local NO', 'https://www.thelocal.no/feed/'),
+        ],
     }
 
     # Search keywords for drone incidents (per language)
@@ -119,6 +139,9 @@ class ArticleScraper:
         'fr': ['drone', 'drones', 'avion sans pilote'],
         'pl': ['dron', 'drony', 'bezzałogowy'],
         'es': ['dron', 'drones', 'avión sin piloto'],
+        'da': ['drone', 'droner', 'ubemannet luftfartøj'],
+        'no': ['drone', 'droner', 'ubemannet fly'],
+        'sv': ['drönare', 'drönare', 'obemannad farkost'],
     }
 
     def __init__(self, cache_dir: str = ".cache/articles", cache_ttl_hours: int = 24):
