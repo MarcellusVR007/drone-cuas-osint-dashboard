@@ -14,6 +14,8 @@ const app = createApp({
         });
 
         const incidents = ref([]);
+        const allIncidents = ref([]); // Store all incidents unfiltered
+        const dateRangeFilter = ref('60'); // Default: 60 days
         const droneTypes = ref([]);
         const restrictedAreas = ref([]);
         const patterns = ref([]);
@@ -173,19 +175,12 @@ const app = createApp({
                 const response = await fetch('/api/incidents/?limit=100');
                 const data = await response.json();
 
-                // Filter: only last 60 days
-                const sixtyDaysAgo = new Date();
-                sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+                // Store all incidents unfiltered
+                allIncidents.value = data.incidents || [];
 
-                const recentIncidents = (data.incidents || []).filter(inc => {
-                    const incDate = new Date(inc.sighting_date);
-                    return incDate >= sixtyDaysAgo;
-                });
+                // Apply date filter
+                applyDateFilter();
 
-                // Set default sort: most recent first
-                sortColumn.value = 'date';
-                sortDirection.value = 'desc';
-                incidents.value = sortIncidents(recentIncidents);
                 // Also fetch restricted areas for location name lookup
                 if (restrictedAreas.value.length === 0) {
                     await fetchRestrictedAreas();
@@ -198,6 +193,31 @@ const app = createApp({
                 console.error('Error fetching incidents:', error);
             } finally {
                 loading.value = false;
+            }
+        };
+
+        const applyDateFilter = () => {
+            let filteredData = [...allIncidents.value];
+
+            if (dateRangeFilter.value !== 'all') {
+                const daysBack = parseInt(dateRangeFilter.value);
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+
+                filteredData = filteredData.filter(inc => {
+                    const incDate = new Date(inc.sighting_date);
+                    return incDate >= cutoffDate;
+                });
+            }
+
+            // Set default sort: most recent first
+            sortColumn.value = 'date';
+            sortDirection.value = 'desc';
+            incidents.value = sortIncidents(filteredData);
+
+            // Update map markers
+            if (map) {
+                updateMapMarkers();
             }
         };
 
@@ -855,6 +875,8 @@ const app = createApp({
             L.control.scale().addTo(detailMap);
         };
 
+        const incidentMarkers = []; // Store incident marker references
+
         const initMap = () => {
             if (map) {
                 map.remove();
@@ -895,12 +917,48 @@ const app = createApp({
                     fillOpacity: 0.1
                 }).addTo(map);
             });
+
+            // Add incident markers
+            updateMapMarkers();
+        };
+
+        const updateMapMarkers = () => {
+            if (!map) return;
+
+            // Remove existing incident markers
+            incidentMarkers.forEach(marker => map.removeLayer(marker));
+            incidentMarkers.length = 0;
+
+            // Add incident markers (red circles)
+            incidents.value.forEach(incident => {
+                const marker = L.circleMarker([incident.latitude, incident.longitude], {
+                    radius: 8,
+                    fillColor: '#dc3545',
+                    color: '#dc3545',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.7
+                })
+                .bindPopup(`
+                    <strong>${incident.title || 'Drone Incident'}</strong><br/>
+                    ${formatDate(incident.sighting_date)}<br/>
+                    ${getLocationName(incident.restricted_area_id)}
+                `)
+                .on('click', () => {
+                    viewIncident(incident.id);
+                })
+                .addTo(map);
+
+                incidentMarkers.push(marker);
+            });
         };
 
         // Watch for view changes
         const watchView = (newView) => {
             if (newView === 'dashboard') {
                 fetchStats();
+                fetchIncidents();
+                fetchRestrictedAreas(); // Need this for map
             } else if (newView === 'incidents') {
                 fetchIncidents();
             } else if (newView === 'drones') {
@@ -1473,6 +1531,8 @@ const app = createApp({
             loading,
             stats,
             incidents,
+            dateRangeFilter,
+            applyDateFilter,
             droneTypes,
             restrictedAreas,
             patterns,
@@ -1544,6 +1604,13 @@ const app = createApp({
             if (newView === 'dashboard') {
                 this.fetchStats();
                 this.fetchIncidents();
+                this.fetchRestrictedAreas(); // Load map data
+                setTimeout(() => {
+                    // Wait for DOM to render, then initialize map
+                    if (document.getElementById('map')) {
+                        // Map will be initialized by fetchRestrictedAreas -> initMap()
+                    }
+                }, 100);
             } else if (newView === 'drones') {
                 this.fetchDroneTypes();
             } else if (newView === 'areas') {

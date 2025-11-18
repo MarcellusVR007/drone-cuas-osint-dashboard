@@ -546,6 +546,29 @@
                             </div>
                         </div>
 
+                        <!-- Map with Date Filter -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h4><i class="fas fa-map text-danger"></i> Incident Map</h4>
+                                    <div class="d-flex align-items-center">
+                                        <label class="me-2 mb-0"><i class="fas fa-calendar-alt"></i> Date Range:</label>
+                                        <select v-model="dateRangeFilter" @change="applyDateFilter" class="form-select form-select-sm" style="width: auto;">
+                                            <option value="7">Last 7 days</option>
+                                            <option value="30">Last 30 days</option>
+                                            <option value="60">Last 60 days (default)</option>
+                                            <option value="90">Last 90 days</option>
+                                            <option value="180">Last 6 months</option>
+                                            <option value="365">Last year</option>
+                                            <option value="all">All time</option>
+                                        </select>
+                                        <span class="badge bg-danger ms-2">{{ incidents.length }} incidents</span>
+                                    </div>
+                                </div>
+                                <div id="map"></div>
+                            </div>
+                        </div>
+
                         <!-- Incidents Table -->
                         <div class="row mb-4">
                             <div class="col-12">
