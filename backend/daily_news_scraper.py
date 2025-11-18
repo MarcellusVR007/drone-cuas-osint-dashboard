@@ -31,6 +31,9 @@ RSS_FEEDS = {
     'UK': [
         ('BBC News', 'https://feeds.bbci.co.uk/news/rss.xml'),
         ('The Guardian', 'https://www.theguardian.com/uk/rss'),
+        ('Sky News', 'https://feeds.skynews.com/feeds/rss/uk.xml'),
+        ('The Telegraph', 'https://www.telegraph.co.uk/rss.xml'),
+        ('Military Times UK', 'https://www.telegraph.co.uk/news/defence/rss'),
     ],
     'SE': [
         ('SVT Nyheter', 'https://www.svt.se/nyheter/rss.xml'),
@@ -57,10 +60,20 @@ INCIDENT_KEYWORDS = [
     'airport', 'military base', 'air base', 'airspace',
     'sighting', 'spotted', 'detected', 'incident',
     'closed', 'shut down', 'disrupted', 'halted',
-    'luchthaven', 'vliegveld',  # Dutch
-    'flughafen', 'militärbasis',  # German
-    'lufthavn',  # Danish/Norwegian
-    'flygplats',  # Swedish
+    # RAF bases (UK specific)
+    'raf', 'lakenheath', 'mildenhall', 'fairford', 'brize norton',
+    'waddington', 'marham', 'coningsby', 'lossiemouth',
+    # Other locations
+    'gatwick', 'heathrow', 'stansted', 'manchester airport',
+    'birmingham airport', 'edinburgh airport',
+    # Dutch
+    'luchthaven', 'vliegveld',
+    # German
+    'flughafen', 'militärbasis',
+    # Danish/Norwegian
+    'lufthavn',
+    # Swedish
+    'flygplats',
 ]
 
 
