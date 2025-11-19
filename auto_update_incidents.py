@@ -102,12 +102,24 @@ def main():
     log("🚁 OSINT CUAS Dashboard - Automatic Update Pipeline")
     log("=" * 80)
 
-    # Step 1: Run daily news scan
+    # Step 1: Run daily news scan (API-based)
     log("\n📰 STEP 1: Scanning news sources for new incidents...")
     success, output = run_command(
         [sys.executable, "daily_news_scan.py"],
-        "Daily news scan"
+        "Daily news scan (API)"
     )
+
+    # Step 1b: RSS fallback scraper (Dutch/Belgian media)
+    log("\n📡 STEP 1b: RSS fallback (NL/BE direct sources)...")
+    rss_success, rss_output = run_command(
+        [sys.executable, "backend/daily_news_scraper.py"],
+        "RSS feed scraper"
+    )
+
+    if rss_success:
+        log("✓ RSS scraper completed successfully")
+    else:
+        log("⚠️  RSS scraper had issues, continuing with API results", "WARNING")
 
     if not success:
         log("❌ News scan failed. Aborting pipeline.", "ERROR")

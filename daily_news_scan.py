@@ -22,20 +22,51 @@ API_BASE = "http://localhost:8000/api"
 # Countries to monitor with localized keywords
 COUNTRY_KEYWORDS = {
     'NL': [
+        # Critical infrastructure
         "drone vliegbasis",
         "drone luchthaven",
         "drone kerncentrale",
+        "drone havengebied",
+        "drone chemische fabriek",
+        "drone industrieterrein",
+        # Specific locations
+        "drone Terneuzen",
+        "drone Schiphol",
+        "drone Rotterdam",
+        "drone Amsterdam",
+        "drone Eindhoven",
+        "drone North Sea Port",
+        "drone Dow",
+        "drone Doel",  # Belgian but often in NL news
+        # General terms
         "onbemand vliegtuig",
         "drone luchtruim",
-        "drone spionage"
+        "drone spionage",
+        "drones waargenomen",
+        "drones gezien",
+        "drone incident",
+        "drone sighting",
+        "meerdere drones"
     ],
     'BE': [
+        # Critical infrastructure
         "drone vliegbasis",
         "drone luchthaven",
         "drone kerncentrale",
         "drone luchtruim",
         "drone espionnage",
-        "drones Kleine-Brogel"
+        # Specific locations
+        "drones Kleine-Brogel",
+        "drone Doel",
+        "drone Brunssum",
+        "drone Liège",
+        "drone Brussels",
+        "drone NATO",
+        "drone JFC",
+        # General
+        "drones waargenomen België",
+        "meerdere drones België",
+        "drone incident België"
     ],
     'DE': [
         "Drohne Militärbasis",

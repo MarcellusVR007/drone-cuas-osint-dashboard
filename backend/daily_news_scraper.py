@@ -17,6 +17,10 @@ RSS_FEEDS = {
     'NL': [
         ('NOS News', 'https://feeds.nos.nl/nosnieuws'),
         ('NU.nl', 'https://www.nu.nl/rss/Algemeen'),
+        ('RTL Nieuws', 'https://www.rtlnieuws.nl/rss/binnenland.xml'),
+        ('AD.nl', 'https://www.ad.nl/binnenland/rss.xml'),
+        ('De Telegraaf', 'https://www.telegraaf.nl/rss'),
+        ('NL Times', 'https://nltimes.nl/feed'),
     ],
     'BE': [
         ('VRT News', 'https://www.vrt.be/vrtnws/nl.rss.articles.xml'),
@@ -66,8 +70,12 @@ INCIDENT_KEYWORDS = [
     # Other locations
     'gatwick', 'heathrow', 'stansted', 'manchester airport',
     'birmingham airport', 'edinburgh airport',
-    # Dutch
-    'luchthaven', 'vliegveld',
+    # Dutch locations
+    'luchthaven', 'vliegveld', 'schiphol', 'rotterdam airport',
+    'eindhoven airport', 'terneuzen', 'havengebied', 'dow',
+    'north sea port', 'kerncentrale', 'doel',
+    # Dutch words
+    'gezien', 'gemeld', 'waargenomen',
     # German
     'flughafen', 'militärbasis',
     # Danish/Norwegian
@@ -137,7 +145,7 @@ def scrape_feed(source_name: str, feed_url: str, country: str, days_back: int = 
         return []
 
 
-def save_to_database(articles: List[Dict], db_path: str = 'data/drone_cuas.db'):
+def save_to_database(articles: List[Dict], db_path: str = 'data/drone_cuas_staging.db'):
     """Save articles to incidents database"""
 
     if not articles:
