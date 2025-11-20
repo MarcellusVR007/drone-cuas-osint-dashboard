@@ -3,8 +3,10 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 from backend.models import Base
 
-# Use absolute path to SQLite database
-db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "drone_cuas.db")
+# Use environment variable for database path (allows staging override)
+# Default to production database if not specified
+default_db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "drone_cuas.db")
+db_path = os.environ.get('DB_PATH', default_db_path)
 
 # Create the data directory if it doesn't exist (important for Render deployment)
 db_dir = os.path.dirname(db_path)
