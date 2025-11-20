@@ -493,6 +493,7 @@
             <div class="row g-0" style="min-height: calc(100vh - 60px);">
                 <!-- Sidebar -->
                 <div class="col-md-2 sidebar">
+                    <!-- Core -->
                     <div class="sidebar-item" @click="currentView = 'dashboard'" :class="{active: currentView === 'dashboard'}">
                         <i class="fas fa-chart-line"></i> Dashboard
                     </div>
@@ -502,15 +503,42 @@
                     <div class="sidebar-item" @click="currentView = 'patterns'" :class="{active: currentView === 'patterns'}">
                         <i class="fas fa-network-wired"></i> Patterns
                     </div>
+
+                    <!-- Intelligence Analysis -->
+                    <div style="padding: 10px; margin-top: 10px; font-size: 11px; color: #888; border-top: 1px solid #333;">INTELLIGENCE</div>
+                    <a href="intelligence.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-shield-alt"></i> Intelligence Hub
+                    </a>
+                    <a href="telegram-intel.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+                        <i class="fab fa-telegram"></i> Telegram Intel
+                    </a>
+                    <a href="gru_monitoring.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-user-secret"></i> GRU Monitoring
+                    </a>
                     <a href="threat_intel.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
                         <i class="fas fa-brain"></i> Threat Intel Wiki
+                    </a>
+
+                    <!-- SOCMINT / Operator Tracking -->
+                    <div style="padding: 10px; margin-top: 10px; font-size: 11px; color: #888; border-top: 1px solid #333;">OPERATORS</div>
+                    <a href="social_graph.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-project-diagram"></i> Social Graph
+                    </a>
+                    <a href="command_chain.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-sitemap"></i> Command Chain
                     </a>
                     <div class="sidebar-item" @click="currentView = 'forums'" :class="{active: currentView === 'forums'}">
                         <i class="fas fa-comments"></i> Forum Monitoring
                     </div>
+
+                    <!-- Forensics -->
+                    <div style="padding: 10px; margin-top: 10px; font-size: 11px; color: #888; border-top: 1px solid #333;">FORENSICS</div>
                     <div class="sidebar-item" @click="currentView = 'flight-forensics'" :class="{active: currentView === 'flight-forensics'}">
                         <i class="fas fa-plane"></i> Flight Forensics
                     </div>
+                    <a href="flight-anomalies.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+                        <i class="fas fa-chart-area"></i> Flight Anomalies
+                    </a>
                 </div>
 
                 <!-- Main Content -->
