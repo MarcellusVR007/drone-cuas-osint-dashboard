@@ -303,7 +303,7 @@ class Tier12EuropaScraper:
             for wallet in operator_data.get('wallets', []):
                 cursor.execute("""
                     INSERT OR IGNORE INTO actors (
-                        name, actor_type, description, telegram_handle
+                        name, actor_type, notes, telegram_handle
                     ) VALUES (?, ?, ?, ?)
                 """, (
                     f'Operator_{wallet[:8]}',
