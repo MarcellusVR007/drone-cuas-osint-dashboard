@@ -226,8 +226,9 @@ def import_to_incidents(cursor, articles: List[Dict]) -> int:
                     confidence_score,
                     title,
                     description,
-                    operational_class
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    operational_class,
+                    report_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 pub_date.date().isoformat(),
                 pub_date.time().isoformat()[:5],  # HH:MM
@@ -238,7 +239,8 @@ def import_to_incidents(cursor, articles: List[Dict]) -> int:
                 0.7,  # RSS source = medium confidence
                 article['title'],
                 article['summary'],
-                'RSS_detected'
+                'RSS_detected',
+                datetime.now().isoformat()  # When we discovered it
             ))
             imported += 1
         except Exception as e:
