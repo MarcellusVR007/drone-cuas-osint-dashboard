@@ -71,15 +71,16 @@
             background-color: var(--card-bg);
             min-height: calc(100vh - 60px);
             border-right: 1px solid rgba(220, 53, 69, 0.2);
-            padding: 20px 0;
+            padding: 0;
         }
 
         .sidebar-item {
-            padding: 12px 20px;
+            padding: 10px 20px;
             cursor: pointer;
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
             color: var(--text-light);
+            display: block;
         }
 
         .sidebar-item:hover {
@@ -493,36 +494,37 @@
             <div class="row g-0" style="min-height: calc(100vh - 60px);">
                 <!-- Sidebar -->
                 <div class="col-md-2 sidebar" style="overflow-y: auto; max-height: calc(100vh - 60px);">
+                    <div style="padding-top: 10px;"></div>
                     <div class="sidebar-item" @click="currentView = 'dashboard'" :class="{active: currentView === 'dashboard'}">
-                        <i class="fas fa-chart-line"></i> Dashboard
+                        <i class="fas fa-chart-line" style="width: 20px;"></i> Dashboard
                     </div>
                     <div class="sidebar-item" @click="currentView = 'areas'" :class="{active: currentView === 'areas'}">
-                        <i class="fas fa-map"></i> Incidents Map
+                        <i class="fas fa-map" style="width: 20px;"></i> Incidents Map
                     </div>
                     <div class="sidebar-item" @click="currentView = 'patterns'" :class="{active: currentView === 'patterns'}">
-                        <i class="fas fa-network-wired"></i> Pattern Analysis
+                        <i class="fas fa-network-wired" style="width: 20px;"></i> Patterns
                     </div>
 
-                    <div style="padding: 8px 20px; margin-top: 15px; font-size: 10px; color: #666; border-top: 1px solid #333; text-transform: uppercase;">Intelligence</div>
+                    <div style="padding: 12px 20px 8px 20px; margin-top: 15px; font-size: 10px; color: #666; border-top: 1px solid #333; text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Intelligence</div>
                     <a href="intelligence.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
-                        <i class="fas fa-shield-alt"></i> Intel Hub
+                        <i class="fas fa-shield-alt" style="width: 20px;"></i> Intel Hub
                     </a>
                     <a href="telegram-intel.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
-                        <i class="fab fa-telegram"></i> Telegram
+                        <i class="fab fa-telegram" style="width: 20px;"></i> Telegram
                     </a>
                     <a href="gru_monitoring.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
-                        <i class="fas fa-user-secret"></i> GRU Monitor
+                        <i class="fas fa-user-secret" style="width: 20px;"></i> GRU Monitor
                     </a>
                     <div class="sidebar-item" @click="currentView = 'forums'" :class="{active: currentView === 'forums'}">
-                        <i class="fas fa-comments"></i> Forums
+                        <i class="fas fa-comments" style="width: 20px;"></i> Forums
                     </div>
 
-                    <div style="padding: 8px 20px; margin-top: 15px; font-size: 10px; color: #666; border-top: 1px solid #333; text-transform: uppercase;">Forensics</div>
+                    <div style="padding: 12px 20px 8px 20px; margin-top: 15px; font-size: 10px; color: #666; border-top: 1px solid #333; text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">Forensics</div>
                     <div class="sidebar-item" @click="currentView = 'flight-forensics'" :class="{active: currentView === 'flight-forensics'}">
-                        <i class="fas fa-plane"></i> Flight Forensics
+                        <i class="fas fa-plane" style="width: 20px;"></i> Flight Forensics
                     </div>
                     <a href="social_graph.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
-                        <i class="fas fa-project-diagram"></i> Social Graph
+                        <i class="fas fa-project-diagram" style="width: 20px;"></i> Social Graph
                     </a>
                 </div>
 
