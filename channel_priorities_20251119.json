@@ -1,0 +1,610 @@
+{
+  "generated_at": "2025-11-19T00:31:27.833853",
+  "total_channels_analyzed": 26,
+  "tier_distribution": {
+    "tier_1": 11,
+    "tier_2": 11,
+    "tier_3": 4,
+    "tier_4": 0
+  },
+  "channels": [
+    {
+      "username": "MedvedevVesti",
+      "total_score": 85.0,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 15,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "MedvedevVesti",
+        "title": "Андрей Медведев",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2017-11-24T14:07:48+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "SolovievLive",
+      "total_score": 85.0,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 15,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "SolovievLive",
+        "title": "СОЛОВЬЁВ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2019-05-26T18:06:14+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "belarusian_silovik",
+      "total_score": 84.96712328767123,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 14.967123287671232,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "belarusian_silovik",
+        "title": "Белорусский силовик 🇧🇾",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2020-11-23T01:08:51+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "rusich_army",
+      "total_score": 83.07671232876712,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 13.076712328767123,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "rusich_army",
+        "title": "АРХАНГЕЛ СПЕЦНАЗА",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2021-07-11T20:34:56+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "patricklancasternewstoday",
+      "total_score": 81.48219178082192,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 11.482191780821918,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "patricklancasternewstoday",
+        "title": "Patrick Lancaster News Today",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2022-01-21T15:38:09+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "rybar_stan",
+      "total_score": 81.18630136986302,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 11.186301369863013,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "rybar_stan",
+        "title": "ТУРАНАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2022-02-26T17:14:00+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "dva_majors",
+      "total_score": 80.2,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 10.2,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "dva_majors",
+        "title": "Два майора",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2022-06-26T15:03:52+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "wybrenvanhaga",
+      "total_score": 79.9068493150685,
+      "category": "dutch_political",
+      "components": {
+        "category_risk": 32.0,
+        "proximity": 30,
+        "age": 13.906849315068493,
+        "verification": 0,
+        "language": 4
+      },
+      "metadata": {
+        "username": "wybrenvanhaga",
+        "title": "Wybren van Haga - BVNL",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2021-04-01T05:02:12+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "voin_dv",
+      "total_score": 79.42739726027398,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 9.427397260273972,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "voin_dv",
+        "title": "Воин DV",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2022-09-28T09:22:37+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "geopolitics_prime",
+      "total_score": 77.43013698630136,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 7.43013698630137,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "geopolitics_prime",
+        "title": "Geopolitics Prime",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2023-05-29T13:31:15+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "deanderekrant",
+      "total_score": 75.04109589041096,
+      "category": "dutch_political",
+      "components": {
+        "category_risk": 32.0,
+        "proximity": 30,
+        "age": 9.04109589041096,
+        "verification": 0,
+        "language": 4
+      },
+      "metadata": {
+        "username": "deanderekrant",
+        "title": "De Andere Krant",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2022-11-14T20:01:04+00:00"
+      },
+      "recommendation": "TIER 1 - Monitor every 1 hour (critical intelligence value)"
+    },
+    {
+      "username": "mikayelbad",
+      "total_score": 74.86849315068493,
+      "category": "other",
+      "components": {
+        "category_risk": 20.0,
+        "proximity": 30,
+        "age": 14.868493150684932,
+        "verification": 10,
+        "language": 0
+      },
+      "metadata": {
+        "username": "mikayelbad",
+        "title": "Mika Badalyan",
+        "description": "",
+        "subscribers": 0,
+        "verified": true,
+        "restricted": false,
+        "scam": false,
+        "created": "2020-12-05T07:08:37+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "ne_rybar",
+      "total_score": 74.0027397260274,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 4.002739726027397,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "ne_rybar",
+        "title": "НЕРЫБАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2024-07-19T05:53:11+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "rybar_africa",
+      "total_score": 71.13424657534246,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 1.1342465753424658,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "rybar_africa",
+        "title": "АФРИКАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2025-07-03T19:31:02+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "rybar_latam",
+      "total_score": 71.12602739726027,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 1.1260273972602741,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "rybar_latam",
+        "title": "ЛАТИНАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2025-07-04T15:11:42+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "evropar",
+      "total_score": 71.11780821917809,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 1.1178082191780823,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "evropar",
+        "title": "ЕВРОПАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2025-07-05T07:05:08+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "caucasar",
+      "total_score": 71.10958904109589,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 1.1095890410958904,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "caucasar",
+        "title": "КАВКАЗАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2025-07-06T08:00:05+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "rybar_mena",
+      "total_score": 71.0931506849315,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 1.093150684931507,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "rybar_mena",
+        "title": "ОРИЕНТАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2025-07-08T06:15:39+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "rybar_pacific",
+      "total_score": 71.0931506849315,
+      "category": "russian_military",
+      "components": {
+        "category_risk": 40.0,
+        "proximity": 30,
+        "age": 1.093150684931507,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "rybar_pacific",
+        "title": "АЗИАТАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2025-07-08T09:17:52+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "lidewij_devos",
+      "total_score": 66.77260273972603,
+      "category": "dutch_political",
+      "components": {
+        "category_risk": 32.0,
+        "proximity": 30,
+        "age": 0.7726027397260273,
+        "verification": 0,
+        "language": 4
+      },
+      "metadata": {
+        "username": "lidewij_devos",
+        "title": "Lidewij de Vos",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2025-08-16T09:30:22+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "NeoficialniyBeZsonoV",
+      "total_score": 65.0,
+      "category": "other",
+      "components": {
+        "category_risk": 20.0,
+        "proximity": 30,
+        "age": 15,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "NeoficialniyBeZsonoV",
+        "title": "Неофициальный Безсонов",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2019-01-02T19:16:40+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "pezdicide",
+      "total_score": 61.85205479452055,
+      "category": "other",
+      "components": {
+        "category_risk": 20.0,
+        "proximity": 30,
+        "age": 11.852054794520548,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "pezdicide",
+        "title": "Системный пестицид",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2021-12-07T06:16:35+00:00"
+      },
+      "recommendation": "TIER 2 - Monitor every 2-4 hours (high intelligence value)"
+    },
+    {
+      "username": "Medmannews",
+      "total_score": 55.26027397260274,
+      "category": "other",
+      "components": {
+        "category_risk": 20.0,
+        "proximity": 30,
+        "age": 5.260273972602739,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "Medmannews",
+        "title": "Mediterranean Man",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2024-02-17T09:55:26+00:00"
+      },
+      "recommendation": "TIER 3 - Monitor every 12 hours (medium intelligence value)"
+    },
+    {
+      "username": "medmannews",
+      "total_score": 55.26027397260274,
+      "category": "other",
+      "components": {
+        "category_risk": 20.0,
+        "proximity": 30,
+        "age": 5.260273972602739,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "medmannews",
+        "title": "Mediterranean Man",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2024-02-17T09:55:26+00:00"
+      },
+      "recommendation": "TIER 3 - Monitor every 12 hours (medium intelligence value)"
+    },
+    {
+      "username": "warriorofnorth",
+      "total_score": 54.676712328767124,
+      "category": "other",
+      "components": {
+        "category_risk": 20.0,
+        "proximity": 30,
+        "age": 4.676712328767123,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "warriorofnorth",
+        "title": "Северный Ветер",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2024-04-28T09:40:21+00:00"
+      },
+      "recommendation": "TIER 3 - Monitor every 12 hours (medium intelligence value)"
+    },
+    {
+      "username": "balkanar",
+      "total_score": 51.11780821917808,
+      "category": "other",
+      "components": {
+        "category_risk": 20.0,
+        "proximity": 30,
+        "age": 1.1178082191780823,
+        "verification": 0,
+        "language": 0
+      },
+      "metadata": {
+        "username": "balkanar",
+        "title": "БАЛКАНАРЬ",
+        "description": "",
+        "subscribers": 0,
+        "verified": false,
+        "restricted": false,
+        "scam": false,
+        "created": "2025-07-05T07:05:48+00:00"
+      },
+      "recommendation": "TIER 3 - Monitor every 12 hours (medium intelligence value)"
+    }
+  ]
+}

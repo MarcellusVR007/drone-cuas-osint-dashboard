@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRU Recruitment Monitor - Dutch Telegram Analysis</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+    <style>
+        :root {
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --success: #28a745;
+            --info: #17a2b8;
+            --dark: #343a40;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6, p, span, div, label {
+            color: #ffffff !important;
+        }
+
+        .text-muted {
+            color: #b8b8b8 !important;
+        }
+
+        .navbar {
+            background: rgba(26, 26, 46, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--danger);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .severity-badge {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .severity-critical { background: var(--danger); }
+        .severity-high { background: #ff6b6b; }
+        .severity-medium { background: var(--warning); color: #000; }
+        .severity-low { background: var(--info); }
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .post-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--danger);
+            transform: translateX(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .full-post-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .channel-badge {
+            background: rgba(23, 162, 184, 0.2);
+            border: 1px solid var(--info);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+
+        .hypothesis-meter {
+            position: relative;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .hypothesis-fill {
+            height: 100%;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, #ff6b6b 0%, #dc3545 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--danger);
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timeline-item {
+            border-left: 2px solid var(--info);
+            padding-left: 1rem;
+            margin-left: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt"></i> CUAS OSINT Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-map-marked-alt"></i> Incident Map
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/gru_monitoring.html">
+                            <i class="fas fa-user-secret"></i> GRU Monitoring
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/forensics">
+                            <i class="fas fa-plane"></i> Flight Forensics
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-4">
+                    <i class="fas fa-user-secret text-danger"></i>
+                    GRU Recruitment Monitor
+                </h1>
+                <p class="lead">
+                    Real-time analysis of Dutch Telegram channels for Russian intelligence recruitment patterns
+                </p>
+                <p class="text-muted">
+                    <i class="fas fa-clock"></i> Last updated: <span id="lastUpdate">Loading...</span>
+                    | Monitoring: <strong>@FVDNL</strong>, <strong>@Cafe_Weltschmerz</strong> + Russian channels
+                </p>
+            </div>
+        </div>
+
+        <!-- Alert Banner (if recruitment detected) -->
+        <div id="alertBanner" class="row mb-4" style="display: none;">
+            <div class="col-12">
+                <div class="alert alert-banner">
+                    <h4><i class="fas fa-exclamation-triangle"></i> CRITICAL: Recruitment Activity Detected</h4>
+                    <p class="mb-0">
+                        <strong id="criticalCount">0</strong> high-confidence recruitment posts found.
+                        Immediate manual review required. Consider reporting to AIVD.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="fas fa-database fa-2x text-info mb-2"></i>
+                    <h2 class="stat-number text-info" id="totalPosts">-</h2>
+                    <p class="stat-label">Total Posts</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="fas fa-exclamation-circle fa-2x text-danger mb-2"></i>
+                    <h2 class="stat-number text-danger" id="criticalPosts">-</h2>
+                    <p class="stat-label">Critical (50+)</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="fas fa-flag fa-2x text-warning mb-2"></i>
+                    <h2 class="stat-number text-warning" id="suspiciousPosts">-</h2>
+                    <p class="stat-label">Suspicious (20+)</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                    <h2 class="stat-number" id="statusText">-</h2>
+                    <p class="stat-label">Status</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5><i class="fas fa-chart-pie"></i> Score Distribution</h5>
+                    <div class="chart-container">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5><i class="fas fa-chart-bar"></i> Posts by Channel</h5>
+                    <div class="chart-container">
+                        <canvas id="channelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hypothesis Testing -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <h4><i class="fas fa-brain"></i> Attribution Analysis: H1 vs H2</h4>
+                    <p class="text-muted">
+                        Based on recruitment evidence: Are drone incidents caused by recruited locals (H1) or Russian state actors (H2)?
+                    </p>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>H1: Local Recruitment</h6>
+                            <div class="hypothesis-meter">
+                                <div id="h1Fill" class="hypothesis-fill" style="width: 0%; background: linear-gradient(90deg, #28a745, #20c997);">
+                                    <span id="h1Score">0%</span>
+                                </div>
+                            </div>
+                            <p class="mt-2 small">
+                                <i class="fas fa-info-circle"></i>
+                                Evidence: <span id="h1Evidence">No recruitment posts detected</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>H2: State Actors (No Recruitment)</h6>
+                            <div class="hypothesis-meter">
+                                <div id="h2Fill" class="hypothesis-fill" style="width: 0%; background: linear-gradient(90deg, #dc3545, #ff6b6b);">
+                                    <span id="h2Score">0%</span>
+                                </div>
+                            </div>
+                            <p class="mt-2 small">
+                                <i class="fas fa-info-circle"></i>
+                                Evidence: <span id="h2Evidence">No local recruitment needed</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <strong>Conclusion:</strong> <span id="hypothesisConclusion">Loading...</span>
+                        <span class="badge bg-secondary" id="confidenceBadge">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dutch Channels Focus -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5><i class="fas fa-flag"></i> @FVDNL (Forum voor Democratie)</h5>
+                    <div id="fvdStats" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5><i class="fas fa-microphone-alt"></i> @Cafe_Weltschmerz</h5>
+                    <div id="cafeStats" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Suspicious Posts -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Intelligence Posts</h4>
+                            <p class="text-muted mb-0">Benelux & EU-focused intelligence from Telegram channels</p>
+                        </div>
+                        <div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-danger active" id="filterBenelux" onclick="filterPosts('benelux')">
+                                    <i class="fas fa-map-marker-alt"></i> Benelux Only
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" id="filterEU" onclick="filterPosts('eu')">
+                                    <i class="fas fa-globe-europe"></i> EU/NATO
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" id="filterAll" onclick="filterPosts('all')">
+                                    <i class="fas fa-list"></i> All Posts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="topPosts" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading posts...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Detail Modal -->
+    <div class="modal fade" id="postModal" tabindex="-1" aria-labelledby="postModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="postModalLabel">
+                            <i class="fas fa-file-alt"></i> Post Details
+                        </h5>
+                        <div class="mt-2">
+                            <span class="channel-badge" id="modalChannel"></span>
+                            <span class="severity-badge ms-2" id="modalSeverity"></span>
+                            <span class="badge bg-dark ms-2" id="modalScore"></span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> <span id="modalDate"></span>
+                        </small>
+                    </div>
+                    <div class="full-post-content" id="modalContent">
+                        <!-- Full post content will be inserted here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="modalUrl" href="#" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-external-link-alt"></i> View on Telegram
+                    </a>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global charts and state
+        let scoreChart, channelChart;
+        let allPosts = [];
+        let currentFilter = 'benelux';
+
+        // Geographic keywords for filtering
+        const BENELUX_KEYWORDS = ['nederland', 'netherlands', 'dutch', 'amsterdam', 'rotterdam', 'den haag', 'the hague',
+            'schiphol', 'eindhoven', 'utrecht', 'belgi', 'belgium', 'brussels', 'brussel', 'antwerp', 'luxemburg', 'luxembourg',
+            'volkel', 'gilze-rijen', 'woensdrecht', 'brunssum', 'kleine brogel'];
+
+        const EU_KEYWORDS = ['nato', 'navo', 'europe', 'european', 'eu ', 'poland', 'germany', 'france', 'denmark',
+            'copenhagen', 'oslo', 'warsaw', 'berlin', 'paris', 'rome', 'madrid'];
+
+        // Load all data
+        async function loadData() {
+            try {
+                // Load stats
+                const statsRes = await fetch('/api/gru-monitoring/stats');
+                const stats = await statsRes.json();
+
+                // Load channels
+                const channelsRes = await fetch('/api/gru-monitoring/channels');
+                const channels = await channelsRes.json();
+
+                // Load top posts (fetch more for filtering)
+                const postsRes = await fetch('/api/gru-monitoring/top-posts?limit=100');
+                const posts = await postsRes.json();
+
+                // Load Dutch channels
+                const dutchRes = await fetch('/api/gru-monitoring/dutch-channels');
+                const dutch = await dutchRes.json();
+
+                // Load hypothesis
+                const hypoRes = await fetch('/api/gru-monitoring/hypothesis-scores');
+                const hypothesis = await hypoRes.json();
+
+                // Update UI
+                updateStats(stats);
+                updateCharts(stats, channels);
+                updatePosts(posts);
+                updateDutchChannels(dutch);
+                updateHypothesis(hypothesis);
+
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function updateStats(stats) {
+            document.getElementById('totalPosts').textContent = stats.total_posts.toLocaleString();
+            document.getElementById('criticalPosts').textContent = stats.score_distribution.critical;
+            document.getElementById('suspiciousPosts').textContent =
+                stats.score_distribution.medium + stats.score_distribution.high;
+
+            const statusEl = document.getElementById('statusText');
+            const status = stats.assessment.status;
+            statusEl.textContent = status;
+
+            if (status === 'CRITICAL') {
+                statusEl.classList.add('text-danger');
+            } else if (status === 'HIGH') {
+                statusEl.classList.add('text-warning');
+            } else {
+                statusEl.classList.add('text-success');
+            }
+
+            // Show alert banner if critical
+            if (stats.score_distribution.critical > 0) {
+                document.getElementById('alertBanner').style.display = 'block';
+                document.getElementById('criticalCount').textContent = stats.score_distribution.critical;
+            }
+        }
+
+        function updateCharts(stats, channels) {
+            // Score Distribution Pie Chart
+            const scoreCtx = document.getElementById('scoreChart').getContext('2d');
+            if (scoreChart) scoreChart.destroy();
+
+            scoreChart = new Chart(scoreCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Normal (0-19)', 'Medium (20-29)', 'High (30-49)', 'Critical (50+)'],
+                    datasets: [{
+                        data: [
+                            stats.score_distribution.normal,
+                            stats.score_distribution.medium,
+                            stats.score_distribution.high,
+                            stats.score_distribution.critical
+                        ],
+                        backgroundColor: ['#28a745', '#ffc107', '#ff6b6b', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    }
+                }
+            });
+
+            // Channel Bar Chart
+            const channelCtx = document.getElementById('channelChart').getContext('2d');
+            if (channelChart) channelChart.destroy();
+
+            const sortedChannels = channels.channels.sort((a, b) => b.post_count - a.post_count).slice(0, 8);
+
+            channelChart = new Chart(channelCtx, {
+                type: 'bar',
+                data: {
+                    labels: sortedChannels.map(c => '@' + c.channel),
+                    datasets: [{
+                        label: 'Posts',
+                        data: sortedChannels.map(c => c.post_count),
+                        backgroundColor: sortedChannels.map(c =>
+                            c.type === 'dutch' ? '#17a2b8' : '#6c757d'
+                        )
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePosts(data) {
+            // Store all posts globally for filtering
+            allPosts = data.posts;
+
+            // Apply current filter
+            renderFilteredPosts();
+        }
+
+        function renderFilteredPosts() {
+            const container = document.getElementById('topPosts');
+
+            // Filter posts based on current filter
+            let filteredPosts = allPosts;
+
+            if (currentFilter === 'benelux') {
+                filteredPosts = allPosts.filter(post =>
+                    BENELUX_KEYWORDS.some(kw => post.content_preview.toLowerCase().includes(kw))
+                );
+            } else if (currentFilter === 'eu') {
+                filteredPosts = allPosts.filter(post =>
+                    EU_KEYWORDS.some(kw => post.content_preview.toLowerCase().includes(kw)) ||
+                    BENELUX_KEYWORDS.some(kw => post.content_preview.toLowerCase().includes(kw))
+                );
+            }
+            // 'all' shows everything (no filtering)
+
+            if (filteredPosts.length === 0) {
+                container.innerHTML = '<p class="text-muted">No posts found for this filter. Try a different geographic focus.</p>';
+                return;
+            }
+
+            let html = '';
+            filteredPosts.forEach((post, idx) => {
+                const severityClass = `severity-${post.severity.toLowerCase()}`;
+                html += `
+                    <div class="post-card" onclick='showPostModal(${JSON.stringify(post).replace(/'/g, "&apos;")})'>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="channel-badge">@${post.channel}</span>
+                                <span class="severity-badge ${severityClass} ms-2">${post.severity}</span>
+                                <span class="badge bg-dark ms-2">Score: ${post.score}</span>
+                            </div>
+                            <small class="text-muted">${new Date(post.date).toLocaleDateString()}</small>
+                        </div>
+                        <p class="mb-0">${post.content_preview}${post.content_preview.length < post.content_full.length ? '...' : ''}</p>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function filterPosts(filterType) {
+            currentFilter = filterType;
+
+            // Update button active states
+            document.getElementById('filterBenelux').classList.remove('active');
+            document.getElementById('filterEU').classList.remove('active');
+            document.getElementById('filterAll').classList.remove('active');
+
+            if (filterType === 'benelux') {
+                document.getElementById('filterBenelux').classList.add('active');
+            } else if (filterType === 'eu') {
+                document.getElementById('filterEU').classList.add('active');
+            } else {
+                document.getElementById('filterAll').classList.add('active');
+            }
+
+            // Re-render posts with new filter
+            renderFilteredPosts();
+        }
+
+        function showPostModal(post) {
+            // Populate modal with post data
+            document.getElementById('modalChannel').textContent = '@' + post.channel;
+            document.getElementById('modalScore').textContent = 'Score: ' + post.score;
+            document.getElementById('modalDate').textContent = new Date(post.date).toLocaleString();
+            document.getElementById('modalContent').textContent = post.content_full;
+
+            // Set severity badge
+            const severityBadge = document.getElementById('modalSeverity');
+            severityBadge.textContent = post.severity;
+            severityBadge.className = 'severity-badge severity-' + post.severity.toLowerCase();
+
+            // Set Telegram URL
+            const urlButton = document.getElementById('modalUrl');
+            if (post.url) {
+                urlButton.href = post.url;
+                urlButton.style.display = 'inline-block';
+            } else {
+                urlButton.style.display = 'none';
+            }
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('postModal'));
+            modal.show();
+        }
+
+        function updateDutchChannels(data) {
+            const fvdEl = document.getElementById('fvdStats');
+            const cafeEl = document.getElementById('cafeStats');
+
+            const fvd = data.dutch_channels.FVDNL;
+            const cafe = data.dutch_channels.Cafe_Weltschmerz;
+
+            fvdEl.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3 class="text-info">${fvd.total_posts}</h3>
+                        <small>Posts</small>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="text-warning">${fvd.avg_score}</h3>
+                        <small>Avg Score</small>
+                    </div>
+                </div>
+                <hr>
+                <p class="small mb-0">
+                    <i class="fas fa-check-circle text-success"></i> ${fvd.assessment}
+                </p>
+            `;
+
+            cafeEl.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3 class="text-info">${cafe.total_posts}</h3>
+                        <small>Posts</small>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="text-warning">${cafe.avg_score}</h3>
+                        <small>Avg Score</small>
+                    </div>
+                </div>
+                <hr>
+                <p class="small mb-0">
+                    <i class="fas fa-check-circle text-success"></i> ${cafe.assessment}
+                </p>
+            `;
+        }
+
+        function updateHypothesis(data) {
+            const h1 = data.hypotheses.H1_local_recruitment;
+            const h2 = data.hypotheses.H2_state_actors;
+
+            // Update H1
+            document.getElementById('h1Fill').style.width = h1.score + '%';
+            document.getElementById('h1Score').textContent = h1.score + '%';
+            document.getElementById('h1Evidence').textContent =
+                `${h1.evidence.critical_posts} critical, ${h1.evidence.high_posts} high posts`;
+
+            // Update H2
+            document.getElementById('h2Fill').style.width = h2.score + '%';
+            document.getElementById('h2Score').textContent = h2.score + '%';
+            document.getElementById('h2Evidence').textContent =
+                h2.evidence.no_recruitment_found ? 'No recruitment found' : 'Recruitment detected';
+
+            // Update conclusion
+            document.getElementById('hypothesisConclusion').textContent = data.conclusion;
+            document.getElementById('confidenceBadge').textContent = data.confidence + ' confidence';
+
+            const badge = document.getElementById('confidenceBadge');
+            badge.className = 'badge ' +
+                (data.confidence === 'HIGH' ? 'bg-success' :
+                 data.confidence === 'MEDIUM' ? 'bg-warning' : 'bg-secondary');
+        }
+
+        // Load data on page load
+        loadData();
+
+        // Refresh every 5 minutes
+        setInterval(loadData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

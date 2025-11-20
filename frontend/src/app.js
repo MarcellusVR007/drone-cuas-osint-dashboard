@@ -931,6 +931,11 @@ const app = createApp({
 
             // Add incident markers (red circles)
             incidents.value.forEach(incident => {
+                // Skip incidents with unknown coordinates (0,0 = Null Island)
+                if (incident.latitude === 0.0 && incident.longitude === 0.0) {
+                    return;
+                }
+
                 const marker = L.circleMarker([incident.latitude, incident.longitude], {
                     radius: 8,
                     fillColor: '#dc3545',

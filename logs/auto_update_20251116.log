@@ -1,0 +1,9 @@
+[2025-11-16 18:00:00] [INFO] ================================================================================
+[2025-11-16 18:00:00] [INFO] 🚁 OSINT CUAS Dashboard - Automatic Update Pipeline
+[2025-11-16 18:00:00] [INFO] ================================================================================
+[2025-11-16 18:00:00] [INFO] 
+📰 STEP 1: Scanning news sources for new incidents...
+[2025-11-16 18:00:00] [INFO] Running: Daily news scan
+[2025-11-16 18:00:01] [SUCCESS] ✓ Success: Daily news scan
+[2025-11-16 18:00:01] [INFO] ℹ️  No new articles found. Nothing to import.
+[2025-11-16 18:00:01] [INFO] ✓ Pipeline complete (no updates)

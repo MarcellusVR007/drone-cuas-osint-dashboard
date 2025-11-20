@@ -357,6 +357,12 @@
             const lon = incidentData.longitude;
             const range = (droneTypeData.range_km || 10) * 1000; // Convert to meters
 
+            // Skip map rendering for incidents with unknown coordinates (0,0 = Null Island)
+            if (lat === 0.0 && lon === 0.0) {
+                document.getElementById('map').innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Location coordinates unknown - map not available</div>';
+                return;
+            }
+
             // Initialize map
             map = L.map('map').setView([lat, lon], 11);
 

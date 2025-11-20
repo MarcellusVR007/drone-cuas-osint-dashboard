@@ -285,7 +285,7 @@ def insert_posts(posts):
         try:
             cursor.execute("""
                 INSERT INTO social_media_posts
-                (platform, channel, post_date, author_name, author_affiliation,
+                (platform, channel_name, post_date, author_name, author_affiliation,
                  content, content_type, target_location, target_type,
                  payment_amount, payment_currency, crypto_wallet_address, credibility_score)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

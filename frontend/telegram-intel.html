@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Intelligence - OSINT Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .navbar {
+            background: #1a1a1a;
+            border-bottom: 2px solid #dc3545;
+        }
+        .filter-panel {
+            background: #1f1f1f;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        .filter-chip {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 5px 5px 5px 0;
+            font-size: 0.85rem;
+        }
+        .filter-chip .remove {
+            margin-left: 8px;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .filter-chip .remove:hover {
+            opacity: 1;
+        }
+        .result-counter {
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card {
+            background: #2d2d2d;
+            border: 1px solid #444;
+            margin-bottom: 1.5rem;
+            color: #e0e0e0;
+        }
+        .card-header {
+            background: #1f1f1f;
+            border-bottom: 1px solid #555;
+            color: #e0e0e0;
+        }
+        .card-body {
+            color: #e0e0e0;
+        }
+        .card-title, .card-text, p, h1, h2, h3, h4, h5, h6 {
+            color: #e0e0e0 !important;
+        }
+        .badge-confidence-VERY_HIGH { background: #198754; }
+        .badge-confidence-HIGH { background: #0d6efd; }
+        .badge-confidence-MEDIUM { background: #ffc107; color: #000; }
+        .badge-confidence-LOW { background: #6c757d; }
+        .badge-classification-INTELLIGENCE_GATHERING { background: #dc3545; }
+        .badge-classification-BOUNTY_OFFER { background: #fd7e14; }
+        .badge-classification-RECRUITMENT { background: #d63384; }
+        .badge-classification-NEWS_REPORT { background: #6c757d; }
+        .badge-classification-PROPAGANDA { background: #495057; }
+        .badge-classification-PENDING_ANALYSIS { background: #666; }
+        .intel-value-bar {
+            height: 20px;
+            background: linear-gradient(to right, #dc3545 0%, #ffc107 50%, #198754 100%);
+            border-radius: 10px;
+            position: relative;
+        }
+        .intel-value-indicator {
+            position: absolute;
+            top: -5px;
+            width: 3px;
+            height: 30px;
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+        .post-detail {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .original-content {
+            background: #0a0a0a;
+            padding: 10px;
+            border-left: 3px solid #dc3545;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .btn-telegram {
+            background: #0088cc;
+            color: white;
+            border: none;
+        }
+        .btn-telegram:hover {
+            background: #006699;
+            color: white;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        select.form-select, input.form-control {
+            background: #2d2d2d;
+            border: 1px solid #555;
+            color: #e0e0e0;
+        }
+        select.form-select option {
+            background: #2d2d2d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt text-danger"></i> OSINT CUAS Dashboard
+            </a>
+            <span class="text-light">Telegram Intelligence Analysis</span>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5><i class="fas fa-filter"></i> Filters</h5>
+                <button class="btn btn-sm btn-outline-danger" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Clear All
+                </button>
+            </div>
+
+            <!-- Active Filters -->
+            <div id="activeFilters" class="mb-3"></div>
+
+            <div class="row">
+                <!-- Intelligence Value -->
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label">Intelligence Value</label>
+                        <input type="range" class="form-range" min="0" max="10" step="0.5" value="0" id="minIntelValue">
+                        <div class="text-center"><span id="intelValueDisplay">0.0</span>+ / 10</div>
+                    </div>
+                </div>
+
+                <!-- Date Range -->
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label">Date From</label>
+                        <input type="date" class="form-control" id="dateFrom">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label">Date To</label>
+                        <input type="date" class="form-control" id="dateTo">
+                    </div>
+                </div>
+
+                <!-- Confidence -->
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label">Min Confidence</label>
+                        <select class="form-select" id="minConfidence">
+                            <option value="">All</option>
+                            <option value="MEDIUM">Medium+</option>
+                            <option value="HIGH">High+</option>
+                            <option value="VERY_HIGH">Very High Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <!-- Channel -->
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label">Channel</label>
+                        <select class="form-select" id="channelFilter" multiple size="3">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Classification -->
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label">Classification</label>
+                        <select class="form-select" id="classification">
+                            <option value="">All Types</option>
+                            <option value="INTELLIGENCE_GATHERING">Intelligence Gathering</option>
+                            <option value="BOUNTY_OFFER">Bounty Offer</option>
+                            <option value="RECRUITMENT">Recruitment</option>
+                            <option value="NEWS_REPORT">News Report</option>
+                            <option value="PROPAGANDA">Propaganda</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Location Search -->
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label">Location/Target</label>
+                        <input type="text" class="form-control" id="locationFilter" placeholder="Belgium, nuclear, airport...">
+                    </div>
+                </div>
+
+                <!-- Payment Filter -->
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="form-label">Payment Info</label>
+                        <select class="form-select" id="paymentFilter">
+                            <option value="">All Posts</option>
+                            <option value="has_payment">Has Payment Info</option>
+                            <option value="no_payment">No Payment Info</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button class="btn btn-primary" onclick="applyFilters()">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <button class="btn btn-success ms-2" onclick="exportResults()">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Counter -->
+        <div class="result-counter">
+            <div>
+                <strong id="resultCount">Loading...</strong>
+            </div>
+            <div>
+                <span class="text-muted">Total in database: <strong id="totalCount">-</strong></span>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row mb-4" id="stats" style="display:none;">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h3 class="text-info" id="avgIntel">-</h3>
+                        <p class="mb-0">Avg Intelligence Value</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-body">
+                        <strong>By Classification:</strong>
+                        <div id="classificationStats"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Posts -->
+        <div id="posts" class="loading">
+            <i class="fas fa-spinner fa-spin fa-3x"></i>
+            <p class="mt-3">Loading Telegram intelligence...</p>
+        </div>
+    </div>
+
+    <script>
+        let allPosts = [];
+        let filteredPosts = [];
+        let channels = [];
+
+        // Update slider display
+        document.getElementById('minIntelValue').addEventListener('input', (e) => {
+            document.getElementById('intelValueDisplay').textContent = e.target.value;
+        });
+
+        // Load channels for filter
+        async function loadChannels() {
+            try {
+                const response = await fetch('/api/socmint/telegram/intelligence?limit=10000');
+                const data = await response.json();
+
+                // Extract unique channels
+                const channelSet = new Set(data.posts.map(p => p.channel_name).filter(c => c));
+                channels = Array.from(channelSet).sort();
+
+                const channelSelect = document.getElementById('channelFilter');
+                channels.forEach(channel => {
+                    const option = document.createElement('option');
+                    option.value = channel;
+                    option.textContent = channel;
+                    channelSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading channels:', error);
+            }
+        }
+
+        async function loadPosts() {
+            try {
+                const response = await fetch('/api/socmint/telegram/intelligence?limit=10000');
+                const data = await response.json();
+
+                allPosts = data.posts;
+                document.getElementById('totalCount').textContent = allPosts.length;
+
+                // Apply filters
+                applyFilters();
+
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                document.getElementById('posts').innerHTML = '<div class="alert alert-danger">Error loading posts. Check console.</div>';
+            }
+        }
+
+        function applyFilters() {
+            const minValue = parseFloat(document.getElementById('minIntelValue').value);
+            const minConf = document.getElementById('minConfidence').value;
+            const classification = document.getElementById('classification').value;
+            const location = document.getElementById('locationFilter').value.toLowerCase();
+            const paymentFilter = document.getElementById('paymentFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            // Get selected channels
+            const channelSelect = document.getElementById('channelFilter');
+            const selectedChannels = Array.from(channelSelect.selectedOptions).map(opt => opt.value);
+
+            // Filter posts
+            filteredPosts = allPosts.filter(post => {
+                // Intelligence value
+                const intelValue = (post.intelligence_value || post.credibility_score * 10 || 0);
+                if (intelValue < minValue) return false;
+
+                // Confidence
+                if (minConf) {
+                    const confOrder = {LOW: 1, MEDIUM: 2, HIGH: 3, VERY_HIGH: 4, PENDING_ANALYSIS: 0};
+                    const postConf = confOrder[post.confidence_level || post.verification_status] || 0;
+                    const minConfOrder = confOrder[minConf] || 0;
+                    if (postConf < minConfOrder) return false;
+                }
+
+                // Classification
+                if (classification && post.classification !== classification) return false;
+
+                // Channel
+                if (selectedChannels.length > 0 && !selectedChannels.includes(post.channel_name)) return false;
+
+                // Location search
+                if (location) {
+                    const searchIn = (post.content + ' ' + JSON.stringify(post.target_details || {}) + ' ' + (post.target_location || '')).toLowerCase();
+                    if (!searchIn.includes(location)) return false;
+                }
+
+                // Payment filter
+                if (paymentFilter === 'has_payment' && !post.payment_amount) return false;
+                if (paymentFilter === 'no_payment' && post.payment_amount) return false;
+
+                // Date range
+                if (dateFrom) {
+                    const postDate = new Date(post.post_date);
+                    const fromDate = new Date(dateFrom);
+                    if (postDate < fromDate) return false;
+                }
+                if (dateTo) {
+                    const postDate = new Date(post.post_date);
+                    const toDate = new Date(dateTo);
+                    toDate.setHours(23, 59, 59); // End of day
+                    if (postDate > toDate) return false;
+                }
+
+                return true;
+            });
+
+            // Update result counter
+            document.getElementById('resultCount').innerHTML = `Showing <strong>${filteredPosts.length}</strong> posts`;
+
+            // Update active filters display
+            updateActiveFilters();
+
+            // Render posts
+            renderPosts();
+
+            // Update stats
+            updateStats();
+        }
+
+        function updateActiveFilters() {
+            const container = document.getElementById('activeFilters');
+            const filters = [];
+
+            const minValue = parseFloat(document.getElementById('minIntelValue').value);
+            if (minValue > 0) filters.push({text: `Intel ≥${minValue}`, clear: () => { document.getElementById('minIntelValue').value = 0; document.getElementById('intelValueDisplay').textContent = '0.0'; }});
+
+            const minConf = document.getElementById('minConfidence').value;
+            if (minConf) filters.push({text: `${minConf}+ confidence`, clear: () => document.getElementById('minConfidence').value = ''});
+
+            const classification = document.getElementById('classification').value;
+            if (classification) filters.push({text: classification.replace(/_/g, ' '), clear: () => document.getElementById('classification').value = ''});
+
+            const location = document.getElementById('locationFilter').value;
+            if (location) filters.push({text: `Location: ${location}`, clear: () => document.getElementById('locationFilter').value = ''});
+
+            const channelSelect = document.getElementById('channelFilter');
+            const selectedChannels = Array.from(channelSelect.selectedOptions).map(opt => opt.value);
+            if (selectedChannels.length > 0) {
+                filters.push({text: `${selectedChannels.length} channel(s)`, clear: () => channelSelect.selectedIndex = -1});
+            }
+
+            const paymentFilter = document.getElementById('paymentFilter').value;
+            if (paymentFilter) filters.push({text: paymentFilter === 'has_payment' ? 'Has payment' : 'No payment', clear: () => document.getElementById('paymentFilter').value = ''});
+
+            if (filters.length === 0) {
+                container.innerHTML = '<span class="text-muted">No filters active</span>';
+            } else {
+                container.innerHTML = filters.map(f =>
+                    `<span class="filter-chip">${f.text}<span class="remove" onclick="this.parentElement.remove(); (() => {${f.clear.toString()})(); applyFilters();})()">×</span></span>`
+                ).join('');
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('minIntelValue').value = 0;
+            document.getElementById('intelValueDisplay').textContent = '0.0';
+            document.getElementById('minConfidence').value = '';
+            document.getElementById('classification').value = '';
+            document.getElementById('locationFilter').value = '';
+            document.getElementById('paymentFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('channelFilter').selectedIndex = -1;
+            applyFilters();
+        }
+
+        function renderPosts() {
+            const postsContainer = document.getElementById('posts');
+
+            if (filteredPosts.length === 0) {
+                postsContainer.innerHTML = '<div class="alert alert-warning">No posts match your filters. Try adjusting the criteria.</div>';
+                return;
+            }
+
+            postsContainer.innerHTML = filteredPosts.map(post => renderPost(post)).join('');
+        }
+
+        function renderPost(post) {
+            const analysis = post.correlation_notes ? JSON.parse(post.correlation_notes) : {};
+            const intelValue = post.intelligence_value || (post.credibility_score * 10) || 0;
+            const confidence = post.confidence_level || post.verification_status || 'PENDING_ANALYSIS';
+            const classification = post.classification || analysis.classification || 'PENDING_ANALYSIS';
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">
+                                    <i class="fab fa-telegram text-info"></i> ${post.channel_name || 'Unknown Channel'}
+                                    <span class="badge badge-classification-${classification}">${classification.replace(/_/g, ' ')}</span>
+                                </h5>
+                                <small class="text-muted">${new Date(post.post_date).toLocaleString()}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge badge-confidence-${confidence}">
+                                    ${confidence.replace(/_/g, ' ')}
+                                </span>
+                                <br>
+                                <a href="${post.post_url}" target="_blank" class="btn btn-sm btn-telegram mt-1">
+                                    <i class="fas fa-external-link-alt"></i> View on Telegram
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Intelligence Value Bar -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Intelligence Value:</span>
+                                <strong>${intelValue.toFixed(1)} / 10</strong>
+                            </div>
+                            <div class="intel-value-bar">
+                                <div class="intel-value-indicator" style="left: ${intelValue * 10}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="mb-3">
+                            <strong>Content (Translated):</strong>
+                            <p class="mt-2" style="white-space: pre-wrap;">${post.content}</p>
+                        </div>
+
+                        ${analysis.reasoning ? `
+                        <div class="post-detail">
+                            <strong><i class="fas fa-brain"></i> AI Analysis:</strong>
+                            <p class="mt-2 mb-0">${analysis.reasoning}</p>
+                        </div>
+                        ` : ''}
+
+                        ${analysis.target_details && Object.keys(analysis.target_details).length > 0 ? `
+                        <div class="post-detail mt-2">
+                            <strong><i class="fas fa-crosshairs"></i> Target Details:</strong>
+                            <div class="row mt-2">
+                                ${analysis.target_details.locations ? `
+                                <div class="col-md-12">
+                                    <strong>Locations:</strong> ${analysis.target_details.locations.join(', ')}
+                                </div>
+                                ` : ''}
+                                ${analysis.target_details.infrastructure ? `
+                                <div class="col-md-6 mt-2">
+                                    <strong>Infrastructure:</strong> ${analysis.target_details.infrastructure}
+                                </div>
+                                ` : ''}
+                                ${analysis.target_details.payment_amount ? `
+                                <div class="col-md-6 mt-2">
+                                    <strong>Payment:</strong> ${analysis.target_details.payment_amount} (${analysis.target_details.payment_method || 'N/A'})
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        ${post.payment_amount ? `
+                        <div class="mt-2">
+                            <strong>💰 Payment:</strong> ${post.payment_currency || ''} ${post.payment_amount}
+                            ${post.crypto_wallet_address ? `<br><small class="text-muted">Wallet: ${post.crypto_wallet_address.substring(0, 20)}...</small>` : ''}
+                        </div>
+                        ` : ''}
+
+                        ${analysis.relevant_keywords && analysis.relevant_keywords.length > 0 ? `
+                        <div class="mt-2">
+                            <strong>Keywords:</strong>
+                            ${analysis.relevant_keywords.map(kw => `<span class="badge bg-secondary me-1">${kw}</span>`).join('')}
+                        </div>
+                        ` : ''}
+
+                        ${post.incident_title ? `
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <i class="fas fa-link"></i> <strong>Correlated with Incident:</strong> ${post.incident_title} (${new Date(post.incident_date).toLocaleDateString()})
+                        </div>
+                        ` : ''}
+
+                        ${analysis.original_content ? `
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+                                <i class="fas fa-eye"></i> Show Original Text
+                            </button>
+                            <div class="original-content mt-2" style="display: none;">
+                                ${analysis.original_content}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            if (filteredPosts.length === 0) {
+                document.getElementById('stats').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('stats').style.display = 'flex';
+
+            // Average intelligence
+            const avgIntel = filteredPosts.reduce((sum, p) => sum + (p.intelligence_value || p.credibility_score * 10 || 0), 0) / filteredPosts.length;
+            document.getElementById('avgIntel').textContent = avgIntel.toFixed(1);
+
+            // By classification
+            const byClass = {};
+            filteredPosts.forEach(p => {
+                const cls = p.classification || 'PENDING_ANALYSIS';
+                byClass[cls] = (byClass[cls] || 0) + 1;
+            });
+
+            let classStats = '';
+            for (const [type, count] of Object.entries(byClass)) {
+                classStats += `<span class="badge badge-classification-${type} me-1">${type.replace(/_/g, ' ')}: ${count}</span> `;
+            }
+            document.getElementById('classificationStats').innerHTML = classStats;
+        }
+
+        function exportResults() {
+            // Create CSV
+            const headers = ['Date', 'Channel', 'Classification', 'Intelligence Value', 'Confidence', 'Content', 'URL'];
+            const rows = filteredPosts.map(post => [
+                post.post_date,
+                post.channel_name,
+                post.classification || 'N/A',
+                (post.intelligence_value || post.credibility_score * 10 || 0).toFixed(1),
+                post.confidence_level || post.verification_status || 'N/A',
+                `"${post.content.replace(/"/g, '""')}"`,
+                post.post_url
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `telegram-intelligence-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        // Load on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadChannels();
+            loadPosts();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+{
+  "generated_at": "2025-11-19T00:30:21.066609",
+  "seed_channels": [
+    "rybar",
+    "intelslava",
+    "FVDNL",
+    "Cafe_Weltschmerz"
+  ],
+  "discovery_methods": [
+    "forwards",
+    "mentions",
+    "keyword_search"
+  ],
+  "total_discovered": 26,
+  "channels": {
+    "belarusian_silovik": {
+      "username": "belarusian_silovik",
+      "title": "Белорусский силовик 🇧🇾",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2020-11-23T01:08:51+00:00"
+    },
+    "Medmannews": {
+      "username": "Medmannews",
+      "title": "Mediterranean Man",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2024-02-17T09:55:26+00:00"
+    },
+    "rybar_mena": {
+      "username": "rybar_mena",
+      "title": "ОРИЕНТАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2025-07-08T06:15:39+00:00"
+    },
+    "NeoficialniyBeZsonoV": {
+      "username": "NeoficialniyBeZsonoV",
+      "title": "Неофициальный Безсонов",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2019-01-02T19:16:40+00:00"
+    },
+    "lidewij_devos": {
+      "username": "lidewij_devos",
+      "title": "Lidewij de Vos",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2025-08-16T09:30:22+00:00"
+    },
+    "ne_rybar": {
+      "username": "ne_rybar",
+      "title": "НЕРЫБАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2024-07-19T05:53:11+00:00"
+    },
+    "pezdicide": {
+      "username": "pezdicide",
+      "title": "Системный пестицид",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2021-12-07T06:16:35+00:00"
+    },
+    "MedvedevVesti": {
+      "username": "MedvedevVesti",
+      "title": "Андрей Медведев",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2017-11-24T14:07:48+00:00"
+    },
+    "patricklancasternewstoday": {
+      "username": "patricklancasternewstoday",
+      "title": "Patrick Lancaster News Today",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2022-01-21T15:38:09+00:00"
+    },
+    "rusich_army": {
+      "username": "rusich_army",
+      "title": "АРХАНГЕЛ СПЕЦНАЗА",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2021-07-11T20:34:56+00:00"
+    },
+    "dva_majors": {
+      "username": "dva_majors",
+      "title": "Два майора",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2022-06-26T15:03:52+00:00"
+    },
+    "geopolitics_prime": {
+      "username": "geopolitics_prime",
+      "title": "Geopolitics Prime",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2023-05-29T13:31:15+00:00"
+    },
+    "mikayelbad": {
+      "username": "mikayelbad",
+      "title": "Mika Badalyan",
+      "description": "",
+      "subscribers": 0,
+      "verified": true,
+      "restricted": false,
+      "scam": false,
+      "created": "2020-12-05T07:08:37+00:00"
+    },
+    "rybar_stan": {
+      "username": "rybar_stan",
+      "title": "ТУРАНАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2022-02-26T17:14:00+00:00"
+    },
+    "SolovievLive": {
+      "username": "SolovievLive",
+      "title": "СОЛОВЬЁВ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2019-05-26T18:06:14+00:00"
+    },
+    "voin_dv": {
+      "username": "voin_dv",
+      "title": "Воин DV",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2022-09-28T09:22:37+00:00"
+    },
+    "medmannews": {
+      "username": "medmannews",
+      "title": "Mediterranean Man",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2024-02-17T09:55:26+00:00"
+    },
+    "wybrenvanhaga": {
+      "username": "wybrenvanhaga",
+      "title": "Wybren van Haga - BVNL",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2021-04-01T05:02:12+00:00"
+    },
+    "rybar_latam": {
+      "username": "rybar_latam",
+      "title": "ЛАТИНАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2025-07-04T15:11:42+00:00"
+    },
+    "caucasar": {
+      "username": "caucasar",
+      "title": "КАВКАЗАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2025-07-06T08:00:05+00:00"
+    },
+    "evropar": {
+      "username": "evropar",
+      "title": "ЕВРОПАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2025-07-05T07:05:08+00:00"
+    },
+    "rybar_pacific": {
+      "username": "rybar_pacific",
+      "title": "АЗИАТАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2025-07-08T09:17:52+00:00"
+    },
+    "warriorofnorth": {
+      "username": "warriorofnorth",
+      "title": "Северный Ветер",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2024-04-28T09:40:21+00:00"
+    },
+    "rybar_africa": {
+      "username": "rybar_africa",
+      "title": "АФРИКАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2025-07-03T19:31:02+00:00"
+    },
+    "deanderekrant": {
+      "username": "deanderekrant",
+      "title": "De Andere Krant",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2022-11-14T20:01:04+00:00"
+    },
+    "balkanar": {
+      "username": "balkanar",
+      "title": "БАЛКАНАРЬ",
+      "description": "",
+      "subscribers": 0,
+      "verified": false,
+      "restricted": false,
+      "scam": false,
+      "created": "2025-07-05T07:05:48+00:00"
+    }
+  }
+}

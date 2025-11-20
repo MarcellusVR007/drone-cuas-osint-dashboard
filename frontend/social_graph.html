@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Graph - Intelligence Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #e0e0e0;
+        }
+
+        #graph {
+            width: 100%;
+            height: 800px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+
+        .node {
+            cursor: pointer;
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+
+        .node.hub {
+            stroke: #ff6b6b;
+            stroke-width: 3px;
+        }
+
+        .node.russian {
+            fill: #e74c3c;
+        }
+
+        .node.dutch {
+            fill: #3498db;
+        }
+
+        .node.other {
+            fill: #95a5a6;
+        }
+
+        .link {
+            stroke: #666;
+            stroke-opacity: 0.6;
+        }
+
+        .link.strong {
+            stroke: #ffa500;
+            stroke-width: 2px;
+        }
+
+        .node-label {
+            font-size: 12px;
+            fill: #e0e0e0;
+            pointer-events: none;
+        }
+
+        .legend {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-5">
+                    <i class="bi bi-diagram-3"></i> Social Network Graph
+                </h1>
+                <p class="text-muted">Intelligence link analysis - Channel relationships</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-9">
+                <div id="graph"></div>
+            </div>
+            <div class="col-md-3">
+                <div class="legend">
+                    <h5>Legend</h5>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e74c3c;"></div>
+                        <span>Russian Military</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3498db;"></div>
+                        <span>Dutch Political</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #95a5a6;"></div>
+                        <span>Other</span>
+                    </div>
+                    <hr>
+                    <div class="legend-item">
+                        <div class="legend-color" style="border: 3px solid #ff6b6b; background: transparent;"></div>
+                        <span>Hub (>50 connections)</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-dark rounded">
+                    <h6>Statistics</h6>
+                    <div id="stats"></div>
+                </div>
+
+                <div class="mt-4 p-3 bg-dark rounded">
+                    <h6>Selected Node</h6>
+                    <div id="node-info">Click a node to see details</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <a href="intelligence.html" class="btn btn-secondary">← Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load and render social graph
+        async function loadGraph() {
+            const response = await fetch('/api/correlation/social-graph');
+            const data = await response.json();
+
+            // Build D3 graph
+            const width = document.getElementById('graph').clientWidth;
+            const height = 800;
+
+            const svg = d3.select("#graph")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Create nodes from data
+            const nodes = data.nodes.map(n => ({
+                id: n.username,
+                label: n.username,
+                connections: n.connections || 0,
+                type: detectType(n.username)
+            }));
+
+            // Create links from data
+            const links = data.edges.map(e => ({
+                source: e.source,
+                target: e.target,
+                strength: e.weight || 1
+            }));
+
+            // Detect node type (Russian/Dutch/Other)
+            function detectType(username) {
+                const lower = username.toLowerCase();
+                if (lower.includes('rybar') || lower.includes('rusich') || lower.includes('dva_major') ||
+                    lower.includes('voin') || lower.includes('soloviev') || lower.includes('medvedev') ||
+                    lower.includes('belarusian') || lower.includes('patrick')) {
+                    return 'russian';
+                } else if (lower.includes('fvd') || lower.includes('haga') || lower.includes('vos') ||
+                           lower.includes('krant') || lower.includes('weltschmerz')) {
+                    return 'dutch';
+                }
+                return 'other';
+            }
+
+            // Force simulation
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collision", d3.forceCollide().radius(30));
+
+            // Create links
+            const link = svg.append("g")
+                .selectAll("line")
+                .data(links)
+                .enter().append("line")
+                .attr("class", d => d.strength > 5 ? "link strong" : "link")
+                .attr("stroke-width", d => Math.sqrt(d.strength));
+
+            // Create nodes
+            const node = svg.append("g")
+                .selectAll("circle")
+                .data(nodes)
+                .enter().append("circle")
+                .attr("class", d => `node ${d.type} ${d.connections > 50 ? 'hub' : ''}`)
+                .attr("r", d => 5 + Math.sqrt(d.connections) * 2)
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended))
+                .on("click", showNodeInfo);
+
+            // Add labels
+            const label = svg.append("g")
+                .selectAll("text")
+                .data(nodes)
+                .enter().append("text")
+                .attr("class", "node-label")
+                .text(d => "@" + d.label);
+
+            // Update positions on tick
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                label
+                    .attr("x", d => d.x + 12)
+                    .attr("y", d => d.y + 4);
+            });
+
+            // Drag functions
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            // Show node info
+            function showNodeInfo(event, d) {
+                document.getElementById('node-info').innerHTML = `
+                    <strong>@${d.label}</strong><br>
+                    Type: ${d.type}<br>
+                    Connections: ${d.connections}<br>
+                    ${d.connections > 50 ? '<span class="badge bg-danger">HUB</span>' : ''}
+                `;
+            }
+
+            // Show stats
+            const stats = {
+                nodes: nodes.length,
+                links: links.length,
+                hubs: nodes.filter(n => n.connections > 50).length,
+                russian: nodes.filter(n => n.type === 'russian').length,
+                dutch: nodes.filter(n => n.type === 'dutch').length
+            };
+
+            document.getElementById('stats').innerHTML = `
+                <small>
+                Nodes: ${stats.nodes}<br>
+                Links: ${stats.links}<br>
+                Hubs: ${stats.hubs}<br>
+                Russian: ${stats.russian}<br>
+                Dutch: ${stats.dutch}
+                </small>
+            `;
+        }
+
+        loadGraph();
+    </script>
+</body>
+</html>

@@ -30,7 +30,7 @@ def correlate_all():
 
     # Fetch all Telegram posts
     cursor.execute("""
-        SELECT id, channel, post_date, target_location, content,
+        SELECT id, channel_name, post_date, target_location, content,
                payment_amount, payment_currency, crypto_wallet_address
         FROM social_media_posts
         WHERE platform = 'Telegram'
@@ -70,6 +70,9 @@ def correlate_all():
 
             try:
                 post_date = datetime.fromisoformat(post_date_str)
+                # Make timezone naive for comparison
+                if post_date.tzinfo is not None:
+                    post_date = post_date.replace(tzinfo=None)
             except:
                 continue
 
@@ -185,7 +188,7 @@ def show_unmatched_posts():
     print("They may predict FUTURE incidents.\n")
 
     cursor.execute("""
-        SELECT id, channel, post_date, target_location, content,
+        SELECT id, channel_name, post_date, target_location, content,
                payment_amount, payment_currency
         FROM social_media_posts
         WHERE platform = 'Telegram'
@@ -211,6 +214,9 @@ def show_unmatched_posts():
 
         if not matched:
             post_date = datetime.fromisoformat(post_date_str)
+            # Make timezone naive for comparison
+            if post_date.tzinfo is not None:
+                post_date = post_date.replace(tzinfo=None)
             days_since = (datetime.now() - post_date).days
 
             print(f"POST #{post_id} - {channel}")

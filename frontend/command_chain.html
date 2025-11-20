@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="nl" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Chain Analysis - OSINT Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .command-layer {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .layer-1 { border-left: 4px solid #dc3545; } /* Red - Command */
+        .layer-2 { border-left: 4px solid #fd7e14; } /* Orange - Coordination */
+        .layer-3 { border-left: 4px solid #ffc107; } /* Yellow - Execution */
+        .layer-4 { border-left: 4px solid #6c757d; } /* Gray - Amplification */
+
+        .entity-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .entity-card:hover {
+            background: #2a2a2a;
+            border-color: #0dcaf0;
+            transform: translateX(5px);
+        }
+
+        .entity-card.selected {
+            background: #1a3a4a;
+            border-color: #0dcaf0;
+            border-width: 2px;
+        }
+
+        .evidence-chain {
+            background: #0d1117;
+            border-left: 3px solid #0dcaf0;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            padding-bottom: 20px;
+            border-left: 2px solid #444;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0dcaf0;
+        }
+
+        .message-content {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 0.85em;
+            line-height: 1.6;
+        }
+
+        .keyword-highlight {
+            background: #ffc107;
+            color: #000;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .threat-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .threat-critical { background: #dc3545; }
+        .threat-high { background: #fd7e14; }
+        .threat-medium { background: #ffc107; color: #000; }
+        .threat-low { background: #6c757d; }
+
+        .connection-line {
+            stroke: #0dcaf0;
+            stroke-width: 2px;
+            fill: none;
+            stroke-dasharray: 5,5;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -1000; }
+        }
+
+        .attribution-box {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a0a0a 100%);
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .dossier-link {
+            color: #0dcaf0;
+            text-decoration: none;
+            border-bottom: 1px dashed #0dcaf0;
+        }
+
+        .dossier-link:hover {
+            color: #58d3f7;
+            border-bottom-style: solid;
+        }
+
+        #graph-canvas {
+            width: 100%;
+            height: 600px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1a1a1a; border-bottom: 2px solid #dc3545;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html" style="color: #dc3545; font-weight: 700;">
+                <i class="fas fa-shield-alt"></i> OSINT CUAS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">🏠 Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="intelligence.html">🧠 Intelligence</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="command_chain.html" style="color: #dc3545 !important; border-bottom: 2px solid #dc3545;">🎯 Command Chain</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="gru_monitoring.html">🕵️ GRU Monitoring</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-6">
+                    🎯 Command Chain Analysis
+                </h1>
+                <p class="text-muted">Intelligence tradecraft: Opdrachtgever identificatie via multi-layer network analyse</p>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <h6>🔍 Intelligence Filters</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label>Min Threat Score</label>
+                                <input type="range" class="form-range" id="threatFilter" min="0" max="100" value="20">
+                                <small class="text-muted">Score: <span id="threatValue">20</span></small>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Tijdsperiode</label>
+                                <select class="form-select form-select-sm" id="timeFilter">
+                                    <option value="24">Laatste 24 uur</option>
+                                    <option value="168" selected>Laatste week</option>
+                                    <option value="720">Laatste maand</option>
+                                    <option value="0">Alle data</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Focus Kanaal</label>
+                                <select class="form-select form-select-sm" id="channelFilter">
+                                    <option value="">Alle kanalen</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button class="btn btn-primary btn-sm w-100" onclick="applyFilters()">
+                                    🔄 Analyse Vernieuwen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Command Chain Layers -->
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Layer 1: Command & Control -->
+                <div class="command-layer layer-1">
+                    <h5>🔴 Layer 1: Command & Control (Opdrachtgevers)</h5>
+                    <p class="small text-muted">
+                        Identificatie van mogelijke opdrachtgevers via payment patterns, tasking language, operational directives
+                    </p>
+                    <div id="layer1-entities"></div>
+                </div>
+
+                <!-- Layer 2: Coordination -->
+                <div class="command-layer layer-2">
+                    <h5>🟠 Layer 2: Coordination (Coordinatoren)</h5>
+                    <p class="small text-muted">
+                        Bridge nodes tussen command en execution - forwarding hubs, recruitment channels
+                    </p>
+                    <div id="layer2-entities"></div>
+                </div>
+
+                <!-- Layer 3: Execution -->
+                <div class="command-layer layer-3">
+                    <h5>🟡 Layer 3: Execution (Uitvoerders)</h5>
+                    <p class="small text-muted">
+                        Direct operationele berichten - location recon, incident timing correlation
+                    </p>
+                    <div id="layer3-entities"></div>
+                </div>
+
+                <!-- Layer 4: Amplification -->
+                <div class="command-layer layer-4">
+                    <h5>⚪ Layer 4: Amplification (Propagandisten)</h5>
+                    <p class="small text-muted">
+                        Post-incident amplification, narrative shaping, disinformation spreading
+                    </p>
+                    <div id="layer4-entities"></div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Attribution Panel -->
+                <div class="attribution-box">
+                    <h5>📋 Dader Attributie</h5>
+                    <div id="attribution-panel">
+                        <p class="text-muted small">Selecteer een entity om attributie-analyse te zien</p>
+                    </div>
+                </div>
+
+                <!-- Evidence Chain -->
+                <div class="mt-4">
+                    <h6>🔗 Evidence Chain</h6>
+                    <div id="evidence-timeline"></div>
+                </div>
+
+                <!-- Actions -->
+                <div class="mt-4">
+                    <button class="btn btn-success w-100 mb-2" onclick="exportDossier()">
+                        📄 Export Dossier (PDF)
+                    </button>
+                    <button class="btn btn-warning w-100 mb-2" onclick="flagForInvestigation()">
+                        ⚠️ Flag for Investigation
+                    </button>
+                    <button class="btn btn-info w-100" onclick="shareWithLEA()">
+                        🚨 Share with Law Enforcement
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Graph -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <h5>🕸️ Command Chain Network Graph</h5>
+                        <div id="graph-canvas"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                <a href="index.html" class="btn btn-secondary me-2">🏠 Home</a>
+                <a href="intelligence.html" class="btn btn-secondary">🧠 Intelligence Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let telegramData = [];
+        let selectedEntity = null;
+
+        // Load real Telegram data
+        async function loadIntelligence() {
+            console.log('Starting intelligence load...');
+
+            try {
+                // Try multiple paths (prefer translated version)
+                const paths = [
+                    '/data/telegram_gru_dutch_20251119_084300_translated.json',
+                    '/data/telegram_gru_dutch_20251119_084300.json',
+                    'telegram_gru_dutch_20251119_084300_translated.json',
+                    'telegram_gru_dutch_20251119_084300.json'
+                ];
+
+                let loaded = false;
+                for (const path of paths) {
+                    try {
+                        console.log('Trying path:', path);
+                        const response = await fetch(path);
+                        console.log('Response status:', response.status);
+
+                        if (response.ok) {
+                            telegramData = await response.json();
+                            console.log('✓ Loaded intelligence from', path, ':', telegramData.length, 'messages');
+                            loaded = true;
+                            break;
+                        }
+                    } catch (e) {
+                        console.log('Failed path:', path, e.message);
+                    }
+                }
+
+                if (!loaded) {
+                    throw new Error('Could not load data from any path');
+                }
+
+                // Populate channel filter
+                const channels = [...new Set(telegramData.map(m => m.channel))];
+                console.log('Found channels:', channels);
+
+                const channelSelect = document.getElementById('channelFilter');
+                channels.forEach(ch => {
+                    const option = document.createElement('option');
+                    option.value = ch;
+                    option.textContent = '@' + ch;
+                    channelSelect.appendChild(option);
+                });
+
+                // Initial analysis
+                analyzeCommandChain();
+            } catch (error) {
+                console.error('Error loading intelligence:', error);
+                document.getElementById('layer1-entities').innerHTML =
+                    `<div class="alert alert-danger">
+                        <strong>Fout bij laden data</strong><br>
+                        Error: ${error.message}<br>
+                        Check browser console (F12) voor details
+                    </div>`;
+            }
+        }
+
+        function analyzeCommandChain() {
+            console.log('Analyzing command chain...');
+            console.log('Total telegram data:', telegramData.length);
+
+            const threatThreshold = parseInt(document.getElementById('threatFilter').value);
+            const timeWindow = parseInt(document.getElementById('timeFilter').value);
+            const channelFilter = document.getElementById('channelFilter').value;
+
+            console.log('Filters - Threat:', threatThreshold, 'Time:', timeWindow, 'Channel:', channelFilter);
+
+            // Filter data
+            let filtered = telegramData.filter(msg => {
+                // Much more permissive filtering
+                const relevanceOk = (msg.relevance_score || 0) >= Math.max(threatThreshold / 20, 0);
+                const channelOk = !channelFilter || msg.channel === channelFilter;
+
+                let timeOk = true;
+                if (timeWindow > 0) {
+                    const msgDate = new Date(msg.post_date);
+                    const cutoff = new Date(Date.now() - timeWindow * 3600 * 1000);
+                    timeOk = msgDate >= cutoff;
+                }
+
+                return relevanceOk && channelOk && timeOk;
+            });
+
+            console.log('Filtered messages:', filtered.length);
+            console.log('Sample filtered msg:', filtered[0]);
+
+            // Layer 1: Command & Control (payment info, recruitment)
+            const layer1 = filtered.filter(m =>
+                m.payment_info?.has_payment ||
+                m.gru_recruitment_score > 30 ||
+                (m.intel_keywords || []).some(k => ['opdracht', 'payment', 'betaling', 'crypto'].includes(k.toLowerCase()))
+            );
+
+            // Layer 2: Coordination (high forwards, bridge channels)
+            const layer2 = filtered.filter(m =>
+                (m.forwards || 0) > 50 ||
+                ['rybar', 'intelslava'].includes(m.channel.toLowerCase())
+            );
+
+            // Layer 3: Execution (location + drone keywords, high relevance)
+            const layer3 = filtered.filter(m =>
+                m.location_keywords?.length > 0 &&
+                m.intel_keywords?.length > 0 &&
+                m.relevance_score >= 20
+            );
+
+            // Layer 4: Amplification (political channels, low intel value but high engagement)
+            const layer4 = filtered.filter(m =>
+                ['FVDNL', 'Cafe_Weltschmerz'].includes(m.channel) &&
+                m.views > 1000
+            );
+
+            // Render layers
+            renderLayer('layer1-entities', layer1, 'command');
+            renderLayer('layer2-entities', layer2, 'coordination');
+            renderLayer('layer3-entities', layer3, 'execution');
+            renderLayer('layer4-entities', layer4, 'amplification');
+
+            // Build network graph
+            buildNetworkGraph(filtered);
+        }
+
+        function renderLayer(elementId, messages, layerType) {
+            const container = document.getElementById(elementId);
+
+            if (messages.length === 0) {
+                container.innerHTML = '<p class="text-muted small">Geen berichten in deze layer</p>';
+                return;
+            }
+
+            // Group by channel
+            const byChannel = {};
+            messages.forEach(msg => {
+                if (!byChannel[msg.channel]) {
+                    byChannel[msg.channel] = [];
+                }
+                byChannel[msg.channel].push(msg);
+            });
+
+            let html = '';
+            for (const [channel, msgs] of Object.entries(byChannel)) {
+                const avgThreat = msgs.reduce((sum, m) => sum + (m.relevance_score * 10), 0) / msgs.length;
+                const threatClass = avgThreat >= 50 ? 'threat-critical' : avgThreat >= 30 ? 'threat-high' : avgThreat >= 20 ? 'threat-medium' : 'threat-low';
+
+                html += `
+                    <div class="entity-card" onclick="selectEntity('${channel}', '${layerType}', ${JSON.stringify(msgs).replace(/"/g, '&quot;')})">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>@${channel}</strong>
+                                <small class="text-muted ms-2">${msgs.length} messages</small>
+                            </div>
+                            <span class="threat-badge ${threatClass}">
+                                Threat: ${Math.round(avgThreat)}
+                            </span>
+                        </div>
+                        <div class="mt-2 small">
+                            <span class="badge bg-secondary me-1">👁️ ${msgs.reduce((sum, m) => sum + (m.views || 0), 0).toLocaleString()} views</span>
+                            <span class="badge bg-secondary me-1">📤 ${msgs.reduce((sum, m) => sum + (m.forwards || 0), 0)} forwards</span>
+                            ${msgs.some(m => m.payment_info?.has_payment) ? '<span class="badge bg-danger">💰 Payment</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function selectEntity(channel, layer, messages) {
+            selectedEntity = { channel, layer, messages };
+
+            // Highlight selected card
+            document.querySelectorAll('.entity-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // Show attribution analysis
+            renderAttribution(channel, layer, messages);
+
+            // Show evidence timeline
+            renderEvidenceTimeline(messages);
+        }
+
+        function renderAttribution(channel, layer, messages) {
+            const container = document.getElementById('attribution-panel');
+
+            // Collect target locations
+            const targetLocations = new Set();
+            messages.forEach(m => {
+                if (m.location_keywords) {
+                    m.location_keywords.forEach(loc => targetLocations.add(loc));
+                }
+            });
+
+            // Collect intel keywords
+            const intelKeywords = new Set();
+            messages.forEach(m => {
+                if (m.intel_keywords) {
+                    m.intel_keywords.forEach(kw => intelKeywords.add(kw));
+                }
+            });
+
+            // Collect payment info
+            const paymentAddresses = new Set();
+            messages.forEach(m => {
+                if (m.payment_info?.crypto_addresses) {
+                    m.payment_info.crypto_addresses.forEach(addr => paymentAddresses.add(addr));
+                }
+            });
+
+            const indicators = {
+                payment: messages.some(m => m.payment_info?.has_payment),
+                recruitment: messages.some(m => m.gru_recruitment_score > 20),
+                coordination: messages.some(m => (m.forwards || 0) > 50),
+                russian: ['rybar', 'intelslava', 'MedvedevVesti'].includes(channel),
+                locations: targetLocations.size > 0
+            };
+
+            const confidence = Object.values(indicators).filter(Boolean).length * 20;
+
+            let html = `
+                <h6 class="text-warning">@${channel}</h6>
+                <p class="small"><strong>Layer:</strong> ${layer.toUpperCase()}</p>
+                <p class="small"><strong>Confidence:</strong> ${confidence}%</p>
+
+                <hr>
+                <p class="small"><strong>Attribution Indicators:</strong></p>
+                <ul class="small">
+                    ${indicators.payment ? '<li>✓ Payment infrastructure detected</li>' : ''}
+                    ${indicators.recruitment ? '<li>✓ Recruitment language patterns</li>' : ''}
+                    ${indicators.coordination ? '<li>✓ High coordination velocity</li>' : ''}
+                    ${indicators.russian ? '<li>✓ Known Russian influence channel</li>' : ''}
+                    ${indicators.locations ? '<li>✓ Target location mentions</li>' : ''}
+                </ul>
+
+                ${targetLocations.size > 0 ? `
+                    <hr>
+                    <p class="small"><strong>🎯 Target Locations:</strong></p>
+                    <div class="small">
+                        ${Array.from(targetLocations).map(loc =>
+                            `<span class="badge bg-danger me-1 mb-1" style="cursor: pointer;"
+                                   onclick="alert('Location: ${loc}')">
+                                📍 ${loc.toUpperCase()}
+                            </span>`
+                        ).join('')}
+                    </div>
+                ` : ''}
+
+                ${intelKeywords.size > 0 ? `
+                    <hr>
+                    <p class="small"><strong>🔍 Intelligence Keywords:</strong></p>
+                    <div class="small">
+                        ${Array.from(intelKeywords).slice(0, 10).map(kw =>
+                            `<span class="badge bg-warning text-dark me-1 mb-1">${kw}</span>`
+                        ).join('')}
+                    </div>
+                ` : ''}
+
+                ${paymentAddresses.size > 0 ? `
+                    <hr>
+                    <p class="small"><strong>💰 Payment Infrastructure:</strong></p>
+                    <div class="small" style="font-family: monospace; word-break: break-all;">
+                        ${Array.from(paymentAddresses).map(addr =>
+                            `<div class="badge bg-danger mb-1 w-100 text-start">${addr}</div>`
+                        ).join('')}
+                    </div>
+                ` : ''}
+
+                <hr>
+                <p class="small"><strong>Recommended Action:</strong></p>
+                <p class="small ${confidence >= 75 ? 'text-danger' : confidence >= 50 ? 'text-warning' : 'text-info'}">
+                    ${confidence >= 75 ? '🚨 HIGH PRIORITY - Immediate LEA notification' :
+                      confidence >= 50 ? '⚠️ INVESTIGATE - Build comprehensive dossier' :
+                      '📊 MONITOR - Continue intelligence gathering'}
+                </p>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function renderEvidenceTimeline(messages) {
+            const container = document.getElementById('evidence-timeline');
+
+            // Sort by date
+            const sorted = [...messages].sort((a, b) =>
+                new Date(a.post_date) - new Date(b.post_date)
+            );
+
+            let html = '';
+            sorted.forEach((msg, idx) => {
+                const date = new Date(msg.post_date).toLocaleString('nl-NL');
+                const msgId = `msg-${idx}`;
+
+                // Use English translation if available, otherwise original
+                const displayContent = msg.content_english || msg.content;
+                const preview = highlightKeywords(displayContent.substring(0, 150));
+
+                // Translation note
+                const translationNote = msg.translation_note || '';
+
+                html += `
+                    <div class="timeline-item">
+                        <small class="text-muted">${date}</small>
+                        <div class="message-content" style="cursor: pointer;" onclick="toggleFullMessage('${msgId}')">
+                            <div id="${msgId}-preview">
+                                ${preview}...
+                                <div class="mt-1">
+                                    <small class="text-info">👁️ Click to expand full message</small>
+                                    ${translationNote ? `<br><small class="text-warning">${translationNote}</small>` : ''}
+                                </div>
+                            </div>
+                            <div id="${msgId}-full" style="display: none;">
+                                <div style="white-space: pre-wrap;">${highlightKeywords(displayContent)}</div>
+                                ${msg.content_english && msg.content ? `
+                                    <hr style="border-color: #444; margin: 10px 0;">
+                                    <small class="text-muted"><strong>Original (${msg.original_language?.toUpperCase()}):</strong></small>
+                                    <div style="white-space: pre-wrap; opacity: 0.7; font-size: 0.9em; margin-top: 5px;">
+                                        ${msg.content}
+                                    </div>
+                                ` : ''}
+                                <div class="mt-2">
+                                    <small class="text-info">👁️ Click to collapse</small>
+                                    ${translationNote ? `<br><small class="text-warning">${translationNote}</small>` : ''}
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <a href="${msg.post_url}" target="_blank" class="dossier-link small">
+                                    🔗 View on Telegram
+                                </a>
+                                <span class="ms-2 badge bg-secondary small">
+                                    👁️ ${(msg.views || 0).toLocaleString()} views
+                                </span>
+                                ${msg.forwards ? `
+                                    <span class="ms-1 badge bg-secondary small">
+                                        📤 ${msg.forwards} forwards
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html || '<p class="text-muted small">Geen evidence chain beschikbaar</p>';
+        }
+
+        function toggleFullMessage(msgId) {
+            const preview = document.getElementById(msgId + '-preview');
+            const full = document.getElementById(msgId + '-full');
+
+            if (full.style.display === 'none') {
+                preview.style.display = 'none';
+                full.style.display = 'block';
+            } else {
+                preview.style.display = 'block';
+                full.style.display = 'none';
+            }
+        }
+
+        function highlightKeywords(text) {
+            const keywords = ['drone', 'fpv', 'schiphol', 'eindhoven', 'nederland', 'opdracht', 'betaling', 'crypto', 'bitcoin'];
+            let highlighted = text;
+
+            keywords.forEach(kw => {
+                const regex = new RegExp(`\\b${kw}\\b`, 'gi');
+                highlighted = highlighted.replace(regex, match => `<span class="keyword-highlight">${match}</span>`);
+            });
+
+            return highlighted;
+        }
+
+        function buildNetworkGraph(messages) {
+            // Simple network visualization using channel relationships
+            const canvas = document.getElementById('graph-canvas');
+            canvas.innerHTML = '<p class="text-center text-muted pt-5">Network graph - Coming soon: D3.js force-directed graph showing channel relationships</p>';
+        }
+
+        function applyFilters() {
+            analyzeCommandChain();
+        }
+
+        function exportDossier() {
+            if (!selectedEntity) {
+                alert('Selecteer eerst een entity');
+                return;
+            }
+            alert('Dossier export functionaliteit komt binnenkort');
+        }
+
+        function flagForInvestigation() {
+            if (!selectedEntity) {
+                alert('Selecteer eerst een entity');
+                return;
+            }
+            alert(`@${selectedEntity.channel} gemarkeerd voor onderzoek`);
+        }
+
+        function shareWithLEA() {
+            if (!selectedEntity) {
+                alert('Selecteer eerst een entity');
+                return;
+            }
+            alert('LEA sharing functionaliteit komt binnenkort');
+        }
+
+        // Update threat value display
+        document.getElementById('threatFilter').addEventListener('input', (e) => {
+            document.getElementById('threatValue').textContent = e.target.value;
+        });
+
+        // Initialize on load
+        loadIntelligence();
+    </script>
+</body>
+</html>

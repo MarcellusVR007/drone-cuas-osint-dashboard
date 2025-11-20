@@ -1,0 +1,447 @@
+<?xml version="1.0" ?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <key id="d0" for="node" attr.name="label" attr.type="string"/>
+  <key id="d1" for="node" attr.name="channel_type" attr.type="string"/>
+  <key id="d2" for="node" attr.name="subscriber_count" attr.type="int"/>
+  <key id="d3" for="node" attr.name="message_count" attr.type="int"/>
+  <key id="d4" for="node" attr.name="threat_level" attr.type="string"/>
+  <key id="d5" for="node" attr.name="description" attr.type="string"/>
+  <key id="d10" for="edge" attr.name="relationship" attr.type="string"/>
+  <key id="d11" for="edge" attr.name="weight" attr.type="int"/>
+  <key id="d12" for="edge" attr.name="confidence" attr.type="string"/>
+  <graph id="G" edgedefault="directed">
+    <node id="channel_1">
+      <data key="d0">gru_dutch_test</data>
+      <data key="d1">public</data>
+      <data key="d2">1247</data>
+      <data key="d3">3</data>
+      <data key="d4">LOW</data>
+      <data key="d5">Test channel for GRU recruitment monitoring</data>
+    </node>
+    <node id="channel_2">
+      <data key="d0">drone_fpv_nl_test</data>
+      <data key="d1">public</data>
+      <data key="d2">543</data>
+      <data key="d3">3</data>
+      <data key="d4">LOW</data>
+      <data key="d5">Test channel for drone hobbyists</data>
+    </node>
+    <node id="channel_3">
+      <data key="d0">aviation_news_nl_test</data>
+      <data key="d1">public</data>
+      <data key="d2">2341</data>
+      <data key="d3">2</data>
+      <data key="d4">LOW</data>
+      <data key="d5">Test channel for aviation news</data>
+    </node>
+    <node id="channel_4">
+      <data key="d0">ukraine_updates_test</data>
+      <data key="d1">public</data>
+      <data key="d2">5678</data>
+      <data key="d3">1</data>
+      <data key="d4">LOW</data>
+      <data key="d5">Test channel for war updates</data>
+    </node>
+    <node id="channel_5">
+      <data key="d0">fvd_supporters_test</data>
+      <data key="d1">public</data>
+      <data key="d2">892</data>
+      <data key="d3">1</data>
+      <data key="d4">LOW</data>
+      <data key="d5">Test political channel</data>
+    </node>
+    <node id="channel_6">
+      <data key="d0">FVDNL</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">35</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_7">
+      <data key="d0">Cafe_Weltschmerz</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">6</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_8">
+      <data key="d0">intelslava</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">108</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_9">
+      <data key="d0">rybar</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">337</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_10">
+      <data key="d0">MedvedevVesti</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">147</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_11">
+      <data key="d0">SolovievLive</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">158</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_12">
+      <data key="d0">belarusian_silovik</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">165</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_13">
+      <data key="d0">rusich_army</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">159</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_14">
+      <data key="d0">patricklancasternewstoday</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">188</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_15">
+      <data key="d0">rybar_stan</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">175</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_16">
+      <data key="d0">dva_majors</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">142</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_17">
+      <data key="d0">wybrenvanhaga</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">154</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_18">
+      <data key="d0">voin_dv</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">189</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_19">
+      <data key="d0">geopolitics_prime</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">149</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_20">
+      <data key="d0">deanderekrant</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">200</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_21">
+      <data key="d0">mikayelbad</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">82</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_22">
+      <data key="d0">ne_rybar</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">85</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_23">
+      <data key="d0">rybar_africa</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">98</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_24">
+      <data key="d0">rybar_latam</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">95</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_25">
+      <data key="d0">evropar</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">22</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_26">
+      <data key="d0">caucasar</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">93</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_27">
+      <data key="d0">rybar_mena</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">82</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_28">
+      <data key="d0">rybar_pacific</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">88</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_29">
+      <data key="d0">lidewij_devos</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">5</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_30">
+      <data key="d0">NeoficialniyBeZsonoV</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">85</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <node id="channel_31">
+      <data key="d0">pezdicide</data>
+      <data key="d1">public</data>
+      <data key="d2">0</data>
+      <data key="d3">96</data>
+      <data key="d4">LOW</data>
+      <data key="d5"/>
+    </node>
+    <edge id="e_0" source="channel_9" target="channel_28">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">116</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_1" source="channel_9" target="channel_15">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">196</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_2" source="channel_9" target="channel_23">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">126</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_3" source="channel_9" target="channel_24">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">121</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_4" source="channel_9" target="channel_26">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_5" source="channel_9" target="channel_27">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">112</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_6" source="channel_15" target="channel_23">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_7" source="channel_15" target="channel_24">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_8" source="channel_15" target="channel_26">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">22</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_9" source="channel_15" target="channel_27">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_10" source="channel_15" target="channel_28">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_11" source="channel_23" target="channel_24">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">24</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_12" source="channel_23" target="channel_26">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_13" source="channel_23" target="channel_27">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">24</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_14" source="channel_23" target="channel_28">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">24</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_15" source="channel_24" target="channel_26">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_16" source="channel_24" target="channel_27">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">24</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_17" source="channel_24" target="channel_28">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">24</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_18" source="channel_26" target="channel_27">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_19" source="channel_26" target="channel_28">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">23</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_20" source="channel_27" target="channel_28">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">24</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_21" source="channel_9" target="channel_11">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">27</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_22" source="channel_9" target="channel_18">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">7</data>
+      <data key="d12">MEDIUM</data>
+    </edge>
+    <edge id="e_23" source="channel_9" target="channel_30">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">1</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_24" source="channel_9" target="channel_25">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">2</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_25" source="channel_15" target="channel_25">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">2</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_26" source="channel_23" target="channel_25">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">2</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_27" source="channel_24" target="channel_25">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">2</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_28" source="channel_25" target="channel_26">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">2</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_29" source="channel_25" target="channel_27">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">2</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_30" source="channel_25" target="channel_28">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">2</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_31" source="channel_11" target="channel_23">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">4</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_32" source="channel_21" target="channel_26">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">1</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_33" source="channel_11" target="channel_27">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">5</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_34" source="channel_11" target="channel_28">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">5</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_35" source="channel_9" target="channel_31">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">5</data>
+      <data key="d12">LOW</data>
+    </edge>
+    <edge id="e_36" source="channel_15" target="channel_31">
+      <data key="d10">co_mentioned</data>
+      <data key="d11">1</data>
+      <data key="d12">LOW</data>
+    </edge>
+  </graph>
+</graphml>

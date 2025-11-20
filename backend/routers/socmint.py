@@ -264,3 +264,91 @@ async def get_actor_network(db: Session = Depends(get_db)):
         "nodes": nodes,
         "edges": edges
     }
+
+@router.get("/telegram/intelligence")
+async def get_telegram_intelligence(
+    min_confidence: str = None,
+    min_intelligence_value: float = 0.0,
+    classification: str = None,
+    db: Session = Depends(get_db)
+):
+    """Get analyzed Telegram intelligence posts with filtering"""
+
+    # Base query
+    query_str = """
+        SELECT
+            smp.*,
+            i.title as incident_title,
+            i.sighting_date as incident_date
+        FROM social_media_posts smp
+        LEFT JOIN incidents i ON smp.linked_incident_id = i.id
+        WHERE smp.platform = 'Telegram'
+    """
+
+    params = {}
+
+    # Add filters
+    if min_intelligence_value > 0:
+        query_str += " AND smp.credibility_score >= :min_value"
+        params["min_value"] = min_intelligence_value
+
+    if min_confidence:
+        # Map confidence levels
+        confidence_map = {"LOW": 0.25, "MEDIUM": 0.5, "HIGH": 0.75, "VERY_HIGH": 0.9}
+        if min_confidence in confidence_map:
+            query_str += " AND smp.credibility_score >= :conf_threshold"
+            params["conf_threshold"] = confidence_map[min_confidence]
+
+    if classification:
+        query_str += " AND smp.correlation_notes LIKE :classification"
+        params["classification"] = f'%"classification": "{classification}"%'
+
+    query_str += " ORDER BY smp.credibility_score DESC, smp.post_date DESC"
+
+    result = db.execute(text(query_str), params)
+    posts = []
+
+    for row in result:
+        post_dict = dict(row._mapping)
+
+        # Parse correlation_notes JSON for classification data
+        if post_dict.get("correlation_notes"):
+            try:
+                analysis = json.loads(post_dict["correlation_notes"])
+                post_dict["classification"] = analysis.get("classification", "UNKNOWN")
+                post_dict["reasoning"] = analysis.get("reasoning", "")
+                post_dict["target_details"] = analysis.get("target_details", {})
+                post_dict["relevant_keywords"] = analysis.get("relevant_keywords", [])
+                post_dict["original_content"] = analysis.get("original_content", "")
+            except:
+                pass
+
+        # Map credibility_score to intelligence_value (0-10 scale)
+        post_dict["intelligence_value"] = round(post_dict.get("credibility_score", 0) * 10, 1)
+
+        # Map verification_status to confidence level
+        post_dict["confidence_level"] = post_dict.get("verification_status", "LOW")
+
+        posts.append(post_dict)
+
+    # Calculate stats
+    stats = {
+        "total": len(posts),
+        "by_classification": {},
+        "by_confidence": {},
+        "avg_intelligence_value": sum(p.get("intelligence_value", 0) for p in posts) / len(posts) if posts else 0
+    }
+
+    for post in posts:
+        # Count by classification
+        classification = post.get("classification", "UNKNOWN")
+        stats["by_classification"][classification] = stats["by_classification"].get(classification, 0) + 1
+
+        # Count by confidence
+        confidence = post.get("confidence_level", "LOW")
+        stats["by_confidence"][confidence] = stats["by_confidence"].get(confidence, 0) + 1
+
+    return {
+        "posts": posts,
+        "stats": stats
+    }

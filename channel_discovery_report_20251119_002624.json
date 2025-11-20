@@ -1,0 +1,44 @@
+{
+  "generated_at": "2025-11-19T00:26:24.577908",
+  "source_file": "telegram_gru_dutch_20251117_084031.json",
+  "seed_channels": [
+    "rybar",
+    "intelslava"
+  ],
+  "total_channels_analyzed": 4,
+  "total_discovered": 0,
+  "graph_stats": {
+    "nodes": 490,
+    "edges": 487
+  },
+  "top_priorities": [
+    {
+      "channel": "FVDNL",
+      "priority_score": 17.83,
+      "metadata": {
+        "distance_to_threat": 0,
+        "content_quality": 2.86,
+        "network_centrality": 100,
+        "temporal_correlation": 0,
+        "engagement": 45.11,
+        "messages": 35,
+        "avg_views": 4510.86
+      },
+      "recommendation": "LOW PRIORITY - Review weekly"
+    },
+    {
+      "channel": "Cafe_Weltschmerz",
+      "priority_score": 17.33,
+      "metadata": {
+        "distance_to_threat": 0,
+        "content_quality": 8.33,
+        "network_centrality": 100,
+        "temporal_correlation": 0,
+        "engagement": 13.27,
+        "messages": 6,
+        "avg_views": 1327.33
+      },
+      "recommendation": "LOW PRIORITY - Review weekly"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "generated_at": "2025-11-20T06:58:14.928375",
+  "scan_type": "C-UAS Infrastructure Intelligence",
+  "summary": {
+    "drone_detection_systems": 0,
+    "vulnerable_c2_servers": 0,
+    "ip_cameras_near_airports": 0,
+    "fpv_streaming_servers": 0
+  },
+  "findings": {
+    "drone_detection_systems": [],
+    "c2_infrastructure": [],
+    "ip_cameras": [],
+    "fpv_streaming": []
+  },
+  "recommendations": [
+    "\u26a0\ufe0f  CRITICAL: No drone detection systems found in NL. Consider deploying AeroScope or DroneShield."
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "generated_at": "2025-11-19T09:07:39.256549",
+  "learning_results": {
+    "channels_upgraded": [
+      {
+        "channel": "intelslava",
+        "old_risk": 0,
+        "new_risk": 20,
+        "reason": "High utility: 200, hit rate: 15.7%",
+        "recommendation": "Increase monitoring to every 30 minutes"
+      },
+      {
+        "channel": "rybar",
+        "old_risk": 0,
+        "new_risk": 20,
+        "reason": "High utility: 1855, hit rate: 49.3%",
+        "recommendation": "Increase monitoring to every 30 minutes"
+      },
+      {
+        "channel": "MedvedevVesti",
+        "old_risk": 0,
+        "new_risk": 20,
+        "reason": "High utility: 540, hit rate: 36.1%",
+        "recommendation": "Increase monitoring to every 30 minutes"
+      },
+      {
+        "channel": "rusich_army",
+        "old_risk": 0,
+        "new_risk": 20,
+        "reason": "High utility: 1135, hit rate: 71.1%",
+        "recommendation": "Increase monitoring to every 30 minutes"
+      },
+      {
+        "channel": "dva_majors",
+        "old_risk": 0,
+        "new_risk": 20,
+        "reason": "High utility: 200, hit rate: 12.7%",
+        "recommendation": "Increase monitoring to every 30 minutes"
+      },
+      {
+        "channel": "voin_dv",
+        "old_risk": 0,
+        "new_risk": 20,
+        "reason": "High utility: 1500, hit rate: 77.8%",
+        "recommendation": "Increase monitoring to every 30 minutes"
+      },
+      {
+        "channel": "rybar_africa",
+        "old_risk": 0,
+        "new_risk": 20,
+        "reason": "High utility: 210, hit rate: 21.4%",
+        "recommendation": "Increase monitoring to every 30 minutes"
+      },
+      {
+        "channel": "NeoficialniyBeZsonoV",
+        "old_risk": 0,
+        "new_risk": 20,
+        "reason": "High utility: 555, hit rate: 62.4%",
+        "recommendation": "Increase monitoring to every 30 minutes"
+      }
+    ],
+    "channels_downgraded": [
+      {
+        "channel": "SolovievLive",
+        "old_risk": 0,
+        "new_risk": 0,
+        "reason": "Low utility: 0, no incident links",
+        "recommendation": "Decrease monitoring to every 12 hours"
+      },
+      {
+        "channel": "wybrenvanhaga",
+        "old_risk": 0,
+        "new_risk": 0,
+        "reason": "Low utility: 0, no incident links",
+        "recommendation": "Decrease monitoring to every 12 hours"
+      },
+      {
+        "channel": "deanderekrant",
+        "old_risk": 0,
+        "new_risk": 0,
+        "reason": "Low utility: 0, no incident links",
+        "recommendation": "Decrease monitoring to every 12 hours"
+      },
+      {
+        "channel": "mikayelbad",
+        "old_risk": 0,
+        "new_risk": 0,
+        "reason": "Low utility: 0, no incident links",
+        "recommendation": "Decrease monitoring to every 12 hours"
+      },
+      {
+        "channel": "caucasar",
+        "old_risk": 0,
+        "new_risk": 0,
+        "reason": "Low utility: 0, no incident links",
+        "recommendation": "Decrease monitoring to every 12 hours"
+      },
+      {
+        "channel": "rybar_pacific",
+        "old_risk": 0,
+        "new_risk": 0,
+        "reason": "Low utility: 0, no incident links",
+        "recommendation": "Decrease monitoring to every 12 hours"
+      },
+      {
+        "channel": "pezdicide",
+        "old_risk": 0,
+        "new_risk": 0,
+        "reason": "Low utility: 0, no incident links",
+        "recommendation": "Decrease monitoring to every 12 hours"
+      }
+    ],
+    "new_keywords": [
+      {
+        "keyword": "\u0432\u0441\u0443",
+        "tfidf_score": 0.024594591329676705,
+        "frequency": 142
+      },
+      {
+        "keyword": "\u0440\u043e\u0441\u0441\u0438\u0438",
+        "tfidf_score": 0.014075057606158825,
+        "frequency": 86
+      },
+      {
+        "keyword": "\ud83d\udcb8\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0430\u0442\u044c",
+        "tfidf_score": 0.013644466032020993,
+        "frequency": 72
+      },
+      {
+        "keyword": "\ud83e\udd19\u0430\u0440\u0445\u0430\u043d\u0433\u0435\u043b",
+        "tfidf_score": 0.01174940130535141,
+        "frequency": 62
+      }
+    ],
+    "false_positives_found": 0
+  },
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "type": "monitoring_frequency",
+      "action": "Increase @intelslava monitoring to 30 minutes",
+      "reason": "High utility: 200, hit rate: 15.7%"
+    },
+    {
+      "priority": "HIGH",
+      "type": "monitoring_frequency",
+      "action": "Increase @rybar monitoring to 30 minutes",
+      "reason": "High utility: 1855, hit rate: 49.3%"
+    },
+    {
+      "priority": "HIGH",
+      "type": "monitoring_frequency",
+      "action": "Increase @MedvedevVesti monitoring to 30 minutes",
+      "reason": "High utility: 540, hit rate: 36.1%"
+    },
+    {
+      "priority": "HIGH",
+      "type": "monitoring_frequency",
+      "action": "Increase @rusich_army monitoring to 30 minutes",
+      "reason": "High utility: 1135, hit rate: 71.1%"
+    },
+    {
+      "priority": "HIGH",
+      "type": "monitoring_frequency",
+      "action": "Increase @dva_majors monitoring to 30 minutes",
+      "reason": "High utility: 200, hit rate: 12.7%"
+    },
+    {
+      "priority": "MEDIUM",
+      "type": "keyword_expansion",
+      "action": "Add 4 new keywords to monitoring",
+      "keywords": [
+        "\u0432\u0441\u0443",
+        "\u0440\u043e\u0441\u0441\u0438\u0438",
+        "\ud83d\udcb8\u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0430\u0442\u044c",
+        "\ud83e\udd19\u0430\u0440\u0445\u0430\u043d\u0433\u0435\u043b"
+      ]
+    },
+    {
+      "priority": "LOW",
+      "type": "monitoring_frequency",
+      "action": "Decrease @SolovievLive monitoring to 12 hours",
+      "reason": "Low utility: 0, no incident links"
+    },
+    {
+      "priority": "LOW",
+      "type": "monitoring_frequency",
+      "action": "Decrease @wybrenvanhaga monitoring to 12 hours",
+      "reason": "Low utility: 0, no incident links"
+    },
+    {
+      "priority": "LOW",
+      "type": "monitoring_frequency",
+      "action": "Decrease @deanderekrant monitoring to 12 hours",
+      "reason": "Low utility: 0, no incident links"
+    }
+  ]
+}

@@ -1,0 +1,609 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Number Intelligence - Drone C-UAS OSINT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1f3a 0%, #2d1b3d 100%);
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #00d9ff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #1a1f3a;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #00d9ff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            color: #00d9ff;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #888;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .section {
+            background: #1a1f3a;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .section-title {
+            color: #00d9ff;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2d1b3d;
+            padding-bottom: 10px;
+        }
+
+        .phone-card {
+            background: #0f1425;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .phone-card.high-value {
+            border-left-color: #ff4757;
+            background: linear-gradient(135deg, #1a0f1f 0%, #0f1425 100%);
+        }
+
+        .phone-card.wagner {
+            border-left-color: #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+
+        .phone-number {
+            font-size: 1.5em;
+            color: #00d9ff;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .phone-meta {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: #2d1b3d;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .meta-badge.critical {
+            background: #ff4757;
+            color: #fff;
+        }
+
+        .context {
+            background: #0a0e1a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #555;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .incident-link {
+            background: #2d1b3d;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .incident-link strong {
+            color: #ffa502;
+        }
+
+        .chart-container {
+            background: #0f1425;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .bar {
+            background: linear-gradient(90deg, #00d9ff 0%, #0066ff 100%);
+            height: 30px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .bar-label {
+            position: absolute;
+            right: 10px;
+        }
+
+        .network-viz {
+            background: #0a0e1a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .node {
+            display: inline-block;
+            background: #2d1b3d;
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin: 5px;
+            border: 2px solid #00d9ff;
+        }
+
+        .node.wagner {
+            border-color: #ff0000;
+            background: #3d1b1b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #2d1b3d;
+        }
+
+        th {
+            background: #2d1b3d;
+            color: #00d9ff;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: #0f1425;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #ffa502;
+            color: #000;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .tag.wagner {
+            background: #ff0000;
+            color: #fff;
+        }
+
+        .tag.financial {
+            background: #2ed573;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            margin-top: 50px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📞 PHONE NUMBER INTELLIGENCE BRIEFING</h1>
+            <div class="subtitle">Drone C-UAS OSINT Analysis • Generated 2025-11-20 11:16</div>
+        </header>
+
+        <!-- Key Metrics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">2</div>
+                <div class="stat-label">Unique Phone Numbers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">2</div>
+                <div class="stat-label">Total Occurrences</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1</div>
+                <div class="stat-label">High-Frequency Numbers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">55</div>
+                <div class="stat-label">Drone Incidents in DB</div>
+            </div>
+        </div>
+
+        <!-- Geographic Distribution -->
+        <div class="section">
+            <h2 class="section-title">🌍 Geographic Distribution</h2>
+            <div class="chart-container">
+                
+                <div class="bar" style="width: 100.0%;">
+                    Russia
+                    <span class="bar-label">2 numbers</span>
+                </div>
+            
+            </div>
+        </div>
+
+        <!-- Critical Findings -->
+        
+        <div class="section">
+            <h2 class="section-title">🚨 CRITICAL FINDINGS</h2>
+        
+            <div class="phone-card wagner">
+                <div class="phone-number">+79300311880</div>
+                <div class="phone-meta">
+                    <span class="tag wagner" if "WAGNER" in tag else "tag">FINANCIAL</span><span class="tag wagner" if "WAGNER" in tag else "tag">FINANCIAL</span><span class="tag wagner" if "WAGNER" in tag else "tag">FINANCIAL</span><span class="tag wagner" if "WAGNER" in tag else "tag">FINANCIAL</span><span class="tag wagner" if "WAGNER" in tag else "tag">FINANCIAL</span>
+                    <span class="meta-badge">Russia</span>
+                    <span class="meta-badge critical">12 occurrences</span>
+                    <span class="meta-badge">1 channels</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>Intelligence Assessment:</strong><br>
+                    High-value military contact
+                </div>
+                <div class="context">...не переводите на другие банки, только Сбербанк) - +79300311880...</div><br><br><div class="context">...не переводите на другие банки, только Сбербанк) - +79300311880...</div><br><br><div class="context">...не переводите на другие банки, только Сбербанк) - +79300311880...</div>
+            </div>
+            </div>
+
+        <!-- All Phone Numbers -->
+        
+        <div class="section">
+            <h2 class="section-title">📊 All Phone Numbers (Sorted by Value)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phone Number</th>
+                        <th>Country</th>
+                        <th>Occurrences</th>
+                        <th>Channels</th>
+                        <th>Priority</th>
+                        <th>Tags</th>
+                    </tr>
+                </thead>
+                <tbody>
+        
+                <tr>
+                    <td><code>+79300311880</code></td>
+                    <td>Russia</td>
+                    <td>12</td>
+                    <td>1</td>
+                    <td><strong>CRITICAL</strong></td>
+                    <td><span class="tag financial">FINANCIAL</span><span class="tag financial">FINANCIAL</span><span class="tag financial">FINANCIAL</span><span class="tag financial">FINANCIAL</span><span class="tag financial">FINANCIAL</span></td>
+                </tr>
+            
+                <tr>
+                    <td><code>+79271078027</code></td>
+                    <td>Russia</td>
+                    <td>3</td>
+                    <td>1</td>
+                    <td><strong>MEDIUM</strong></td>
+                    <td></td>
+                </tr>
+            
+                </tbody>
+            </table>
+        </div>
+        
+
+        <!-- Incident Correlations -->
+        
+        <div class="section">
+            <h2 class="section-title">🎯 Phone Number ↔ Drone Incident Correlations</h2>
+            <p style="margin-bottom: 20px;">
+                Temporal analysis of phone number mentions relative to drone incidents.
+                Shows numbers that appeared in Telegram messages within 30 days of incidents.
+            </p>
+        
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79300311880</code><br>
+                    <strong>Incident:</strong> Vliegbasis Gilze-Rijen (2025-11-05)<br>
+                    <strong>Time Delta:</strong> 4 days<br>
+                    <strong>Confidence:</strong> HIGH
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79271078027</code><br>
+                    <strong>Incident:</strong> Vliegbasis Gilze-Rijen (2025-11-05)<br>
+                    <strong>Time Delta:</strong> 14 days<br>
+                    <strong>Confidence:</strong> MEDIUM
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79300311880</code><br>
+                    <strong>Incident:</strong> Brussels, Liège, Mol, Kleine-Brogel, Florennes (2025-11-04)<br>
+                    <strong>Time Delta:</strong> 5 days<br>
+                    <strong>Confidence:</strong> HIGH
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79271078027</code><br>
+                    <strong>Incident:</strong> Brussels, Liège, Mol, Kleine-Brogel, Florennes (2025-11-04)<br>
+                    <strong>Time Delta:</strong> 15 days<br>
+                    <strong>Confidence:</strong> MEDIUM
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79300311880</code><br>
+                    <strong>Incident:</strong> Berlin Brandenburg Airport (BER) (2025-10-31)<br>
+                    <strong>Time Delta:</strong> 9 days<br>
+                    <strong>Confidence:</strong> MEDIUM
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79271078027</code><br>
+                    <strong>Incident:</strong> Berlin Brandenburg Airport (BER) (2025-10-31)<br>
+                    <strong>Time Delta:</strong> 19 days<br>
+                    <strong>Confidence:</strong> MEDIUM
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79300311880</code><br>
+                    <strong>Incident:</strong> Palma de Mallorca Airport (2025-10-20)<br>
+                    <strong>Time Delta:</strong> 20 days<br>
+                    <strong>Confidence:</strong> MEDIUM
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79271078027</code><br>
+                    <strong>Incident:</strong> Palma de Mallorca Airport (2025-10-20)<br>
+                    <strong>Time Delta:</strong> 30 days<br>
+                    <strong>Confidence:</strong> MEDIUM
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79300311880</code><br>
+                    <strong>Incident:</strong> Göteborg-Landvetter Airport (2025-11-06)<br>
+                    <strong>Time Delta:</strong> 3 days<br>
+                    <strong>Confidence:</strong> HIGH
+                </div>
+                
+                <div class="incident-link">
+                    <strong>Phone:</strong> <code>+79271078027</code><br>
+                    <strong>Incident:</strong> Göteborg-Landvetter Airport (2025-11-06)<br>
+                    <strong>Time Delta:</strong> 13 days<br>
+                    <strong>Confidence:</strong> MEDIUM
+                </div>
+                
+            <h3 style="margin-top: 30px; color: #00d9ff;">All Drone Incidents in Database (55)</h3>
+            <table style="margin-top: 15px;">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Coordinates</th>
+                    </tr>
+                </thead>
+                <tbody>
+        
+                <tr>
+                    <td>2025-09-27</td>
+                    <td>Amsterdam Schiphol Airport</td>
+                    <td><code>52.3086, 4.7639</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-11-05</td>
+                    <td>Vliegbasis Gilze-Rijen</td>
+                    <td><code>51.5675, 4.9283</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-01-01</td>
+                    <td>Doel Nuclear Power Plant</td>
+                    <td><code>51.1956, 4.2467</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-01-01</td>
+                    <td>Port of Antwerp</td>
+                    <td><code>51.3429, 4.2894</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-11-04</td>
+                    <td>Brussels, Liège, Mol, Kleine-Brogel, Florennes</td>
+                    <td><code>50.0, 10.0</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-09-21</td>
+                    <td>Mourmelon-le-Grand Military Base</td>
+                    <td><code>49.1989, 4.0028</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-10-04</td>
+                    <td>Munich Airport</td>
+                    <td><code>48.3521, 11.7861</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-10-31</td>
+                    <td>Berlin Brandenburg Airport (BER)</td>
+                    <td><code>52.3667, 13.5033</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2024-08-08</td>
+                    <td>Brunsbüttel Nuclear Power Plant & vicinity</td>
+                    <td><code>53.875, 9.1333</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-04-13</td>
+                    <td>Dubrovnik Airport</td>
+                    <td><code>42.5621, 18.2667</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-10-01</td>
+                    <td>Abandoned Airfield (Falcon Autumn Exercise)</td>
+                    <td><code>52.0, 18.0</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-09-01</td>
+                    <td>Nowe Miasto nad Pilicą Military Base</td>
+                    <td><code>51.8389, 19.9286</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-09-01</td>
+                    <td>Eastern Polish Border</td>
+                    <td><code>50.5, 24.0</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-10-01</td>
+                    <td>Inowrocław</td>
+                    <td><code>52.7667, 18.2667</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-09-28</td>
+                    <td>Henri Coandă Airport, Bucharest</td>
+                    <td><code>44.5711, 26.0832</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-09-19</td>
+                    <td>Henri Coandă Airport, Bucharest</td>
+                    <td><code>44.5711, 26.0832</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2024-04-17</td>
+                    <td>Mihail Kogălniceanu Air Base</td>
+                    <td><code>44.9289, 28.1461</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2024-05-02</td>
+                    <td>Multiple Military Bases</td>
+                    <td><code>56.0, 10.0</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2025-09-22</td>
+                    <td>Copenhagen, Aalborg, Billund, Esbjerg, Sønderborg Airports & multiple military bases</td>
+                    <td><code>56.0, 10.0</code></td>
+                </tr>
+            
+                <tr>
+                    <td>2024-11-06</td>
+                    <td>Adolfo Suárez Madrid-Barajas Airport</td>
+                    <td><code>40.473, -3.6136</code></td>
+                </tr>
+            
+                </tbody>
+            </table>
+        </div>
+        
+
+        <!-- Maltego Integration -->
+        <div class="section">
+            <h2 class="section-title">🕸️ Maltego Graph Visualization</h2>
+            <p style="margin-bottom: 20px;">
+                The command chain and phone number networks have been exported to Maltego format:
+            </p>
+            <div class="network-viz">
+                <div style="margin-bottom: 20px;">
+                    <strong>📊 Files Generated:</strong><br><br>
+                    <code style="background: #0a0e1a; padding: 10px; border-radius: 5px; display: inline-block;">
+                        maltego_command_chain.graphml (15KB)<br>
+                        maltego_temporal_patterns.graphml (4.9KB)<br>
+                        phone_numbers_extracted.json
+                    </code>
+                </div>
+                <p style="margin-top: 20px; color: #888;">
+                    → Open these files in Maltego Desktop for interactive network analysis
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <p>🔒 CLASSIFICATION: INTERNAL OSINT ANALYSIS</p>
+            <p>Generated by Drone C-UAS Intelligence System</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                Data Source: 3153 Telegram messages • 31 channels monitored
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

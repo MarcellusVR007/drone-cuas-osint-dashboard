@@ -52,3 +52,9 @@ data/scan_report_*.json
 node_modules/
 package-lock.json
 yarn.lock
+
+# Staging environment (local only)
+backend/main_staging.py
+start_staging.sh
+STAGING.md
+/tmp/staging_server.log

@@ -1,0 +1,44 @@
+{
+  "analysis_date": "2025-11-19T08:47:01.739329",
+  "source_file": "telegram_gru_dutch_20251117_084031.json",
+  "quality_stats": {
+    "total": 486,
+    "completeness_score": 1.0
+  },
+  "temporal_stats": {
+    "date_range": [
+      "2025-10-18",
+      "2025-11-17"
+    ],
+    "russian_hours_pct": 0.5761316872427984
+  },
+  "suspicious_messages_count": 0,
+  "import_stats": {
+    "channels": 4,
+    "messages": 486
+  },
+  "leads_count": 3,
+  "top_leads": [
+    {
+      "type": "high_value_channel",
+      "channel": "intelslava",
+      "confidence": 1.0,
+      "reason": "101 messages with intel keywords",
+      "action": "Increase collection frequency to every 1 hour"
+    },
+    {
+      "type": "high_value_channel",
+      "channel": "rybar",
+      "confidence": 1.0,
+      "reason": "308 messages with intel keywords",
+      "action": "Increase collection frequency to every 1 hour"
+    },
+    {
+      "type": "potential_coordination",
+      "count": 402,
+      "confidence": 0.5,
+      "reason": "402 messages with >50 forwards",
+      "action": "Investigate forward chains for coordination"
+    }
+  ]
+}
