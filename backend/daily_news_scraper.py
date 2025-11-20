@@ -192,10 +192,59 @@ def save_to_database(articles: List[Dict], db_path: str = 'data/drone_cuas_stagi
             # Duplicate hash
             duplicate_count += 1
 
+    # Also import to incidents table for dashboard visibility
+    imported = import_to_incidents(cursor, articles)
+
     conn.commit()
     conn.close()
 
     print(f"\n✅ Saved {new_count} new articles ({duplicate_count} duplicates skipped)")
+    print(f"   Imported {imported} to incidents table")
+
+
+def import_to_incidents(cursor, articles: List[Dict]) -> int:
+    """Import news articles directly to incidents table"""
+    imported = 0
+
+    for article in articles:
+        try:
+            # Parse date
+            if isinstance(article['pub_date'], str):
+                pub_date = datetime.fromisoformat(article['pub_date'])
+            else:
+                pub_date = article['pub_date']
+
+            # Create incident from article
+            cursor.execute("""
+                INSERT OR IGNORE INTO incidents (
+                    sighting_date,
+                    sighting_time,
+                    latitude,
+                    longitude,
+                    source,
+                    source_url,
+                    confidence_score,
+                    title,
+                    description,
+                    operational_class
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                pub_date.date().isoformat(),
+                pub_date.time().isoformat()[:5],  # HH:MM
+                0.0,  # Unknown lat/lon for now
+                0.0,
+                article['source'],
+                article['url'],
+                0.7,  # RSS source = medium confidence
+                article['title'],
+                article['summary'],
+                'RSS_detected'
+            ))
+            imported += 1
+        except Exception as e:
+            pass  # Skip if duplicate or error
+
+    return imported
 
 
 def main():
