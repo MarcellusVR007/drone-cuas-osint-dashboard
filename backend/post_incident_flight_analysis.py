@@ -12,11 +12,15 @@ from typing import List, Dict, Optional, Tuple
 import sqlite3
 import json
 import math
+import os
 
 class PostIncidentFlightAnalyzer:
     """Analyze flight patterns after drone incidents for forensic investigation"""
 
-    def __init__(self, db_path="data/drone_cuas.db"):
+    def __init__(self, db_path=None):
+        # Use DB_PATH environment variable if set (for staging), otherwise default to production
+        if db_path is None:
+            db_path = os.environ.get('DB_PATH', 'data/drone_cuas.db')
         self.db_path = db_path
         self.api_base = "https://opensky-network.org/api"
 

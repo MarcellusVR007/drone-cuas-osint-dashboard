@@ -60,7 +60,8 @@ from backend.routers import (
     blockchain,
     forums,
     gru_monitoring,
-    correlation
+    correlation,
+    flight_forensics
 )
 
 # Include routers
@@ -78,6 +79,7 @@ app.include_router(blockchain.router, prefix="/api/blockchain", tags=["blockchai
 app.include_router(forums.router, prefix="/api/forums", tags=["forums"])
 app.include_router(gru_monitoring.router, prefix="/api/gru-monitoring", tags=["gru-monitoring"])
 app.include_router(correlation.router, prefix="/api/correlation", tags=["correlation"])
+app.include_router(flight_forensics.router, prefix="/api/flight-forensics", tags=["flight-forensics"])
 
 # Mount static files
 if os.path.exists("frontend/src"):

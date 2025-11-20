@@ -42,7 +42,7 @@ async def startup():
     print("✓ OSINT CUAS Dashboard Ready")
 
 # Import and include routers
-from backend.routers import incidents, drone_types, restricted_areas, patterns, interventions, general, data_sources, sources, intelligence, socmint, blockchain, forums, gru_monitoring
+from backend.routers import incidents, drone_types, restricted_areas, patterns, interventions, general, data_sources, sources, intelligence, socmint, blockchain, forums, gru_monitoring, flight_forensics
 
 app.include_router(general.router, prefix="/api", tags=["general"])
 app.include_router(data_sources.router, prefix="/api/data-sources", tags=["data-sources"])
@@ -57,6 +57,7 @@ app.include_router(socmint.router, prefix="/api/socmint", tags=["socmint"])
 app.include_router(blockchain.router, prefix="/api/blockchain", tags=["blockchain"])
 app.include_router(forums.router, prefix="/api/forums", tags=["forums"])
 app.include_router(gru_monitoring.router, prefix="/api/gru-monitoring", tags=["gru-monitoring"])
+app.include_router(flight_forensics.router, prefix="/api/flight-forensics", tags=["flight-forensics"])
 
 # Mount static files
 if os.path.exists("frontend/src"):
