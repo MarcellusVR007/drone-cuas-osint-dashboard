@@ -82,6 +82,7 @@ class Incident(Base):
     source_url = Column(String(500))  # Direct link to the reporting source/article
     corroborating_sources = Column(Text)  # JSON list of additional sources confirming this incident
     confidence_score = Column(Float, default=0.5)  # 0-1, confidence in report accuracy
+    display_source = Column(String(500), nullable=True)  # Merged sources display string for deduplicated incidents
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     details = Column(Text)

@@ -587,7 +587,15 @@
                                 <div id="map"></div>
                             </div>
                         </div>
-
+                    </div>
+                    <!-- End of col-md-10 main-content -->
+                </div>
+                <!-- End of row with sidebar -->
+            </div>
+            <!-- Full width content below sidebar -->
+            <div class="row g-0">
+                <div class="col-12" style="padding: 20px; background-color: #0f0f0f;">
+                    <div v-if="currentView === 'dashboard'">
                         <!-- Incidents Table -->
                         <div class="row mb-4">
                             <div class="col-12">
@@ -605,6 +613,7 @@
                                         <table v-else class="table">
                                             <thead>
                                                 <tr>
+                                                    <th style="width: 80px;">#</th>
                                                     <th class="sortable" :class="getSortClass('date')" @click="sortBy('date')">Date</th>
                                                     <th class="sortable" :class="getSortClass('location')" @click="sortBy('location')">Location</th>
                                                     <th class="sortable" :class="getSortClass('country')" @click="sortBy('country')">Country</th>
@@ -616,7 +625,8 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="incident in incidents" :key="incident.id">
+                                                <tr v-for="(incident, index) in incidents" :key="incident.id">
+                                                    <td><span class="badge badge-secondary" style="font-family: monospace; font-size: 0.85rem;">#{{ String(index + 1).padStart(3, '0') }}</span></td>
                                                     <td>{{ formatDate(incident.sighting_date) }}</td>
                                                     <td><strong>{{ getLocationName(incident.restricted_area_id) }}</strong></td>
                                                     <td><span class="badge badge-info">{{ getCountryFromArea(incident.restricted_area_id) }}</span></td>
@@ -629,8 +639,8 @@
                                                     <td>{{ incident.purpose_assessment || 'Unknown' }}</td>
                                                     <td>{{ (incident.confidence_score * 100).toFixed(0) }}%</td>
                                                     <td>
-                                                        <a :href="`incident_detail.html?id=${incident.id}`" class="btn btn-sm btn-outline-danger" title="View Launch Zone Analysis">
-                                                            <i class="fas fa-crosshairs"></i> Launch Zone
+                                                        <a :href="`incident_detail.html?id=${incident.id}`" class="btn btn-sm btn-outline-danger" title="View Incident Details">
+                                                            <i class="fas fa-info-circle"></i> Details
                                                         </a>
                                                     </td>
                                                 </tr>

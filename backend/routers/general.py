@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from datetime import datetime, timedelta
 from backend.database import get_db
 from backend.models import Incident, Intervention, DroneType, RestrictedArea, Pattern
@@ -28,17 +28,26 @@ async def get_stats(
         days: Time window for 'recent' incidents (default: 60, max: 365)
     """
 
-    # Total counts
-    total_incidents = db.query(Incident).count()
+    # Total counts (exclude duplicates and false positives)
+    total_incidents = db.query(Incident).filter(
+        or_(
+            Incident.operational_class.is_(None),
+            Incident.operational_class == 'MERGED_MASTER'
+        )
+    ).count()
     total_interventions = db.query(Intervention).count()
     total_patterns = db.query(Pattern).count()
     total_restricted_areas = db.query(RestrictedArea).count()
     total_drone_types = db.query(DroneType).count()
 
-    # Recent incidents (configurable days)
+    # Recent incidents (configurable days, exclude duplicates and false positives)
     cutoff_date = datetime.utcnow() - timedelta(days=days)
     recent_incidents = db.query(Incident).filter(
-        Incident.report_date >= cutoff_date
+        Incident.report_date >= cutoff_date,
+        or_(
+            Incident.operational_class.is_(None),
+            Incident.operational_class == 'MERGED_MASTER'
+        )
     ).count()
 
     # Intervention success rate

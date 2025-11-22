@@ -121,6 +121,14 @@ async def list_incidents(
     """List all incidents with optional filtering"""
     query = db.query(Incident)
 
+    # Filter out duplicates and false positives by default
+    query = query.filter(
+        or_(
+            Incident.operational_class.is_(None),
+            Incident.operational_class == 'MERGED_MASTER'
+        )
+    )
+
     # Apply filters
     if source:
         query = query.filter(Incident.source == source)
@@ -163,7 +171,7 @@ async def list_incidents(
             "distance_to_restricted_m": incident.distance_to_restricted_m,
             "duration_minutes": incident.duration_minutes,
             "source": incident.source,
-            "display_source": get_display_source(incident),  # Primary source to show
+            "display_source": incident.display_source if incident.display_source else get_display_source(incident),  # Show merged sources if available
             "confidence_score": incident.confidence_score,
             "title": incident.title,
             "description": incident.description,
@@ -489,6 +497,28 @@ async def update_incident(
     db.refresh(db_incident)
     return db_incident
 
+@router.post("/{incident_id}/mark-false-positive")
+async def mark_incident_false_positive(incident_id: int, db: Session = Depends(get_db)):
+    """Mark incident as false positive (hides it from views)"""
+    db_incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not db_incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    # Mark as false positive
+    db_incident.operational_class = "FALSE_POSITIVE"
+    db_incident.confidence_score = 0.0
+    db_incident.updated_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(db_incident)
+
+    return {
+        "success": True,
+        "incident_id": incident_id,
+        "operational_class": "FALSE_POSITIVE",
+        "message": "Incident marked as false positive and hidden from views"
+    }
+
 @router.delete("/{incident_id}")
 async def delete_incident(incident_id: int, db: Session = Depends(get_db)):
     """Delete incident"""
@@ -733,3 +763,184 @@ async def get_unconfirmed_characteristics(db: Session = Depends(get_db)):
         })
 
     return results
+
+
+@router.get("/{incident_id}/tactical-assessment")
+async def get_tactical_assessment(incident_id: int, db: Session = Depends(get_db)):
+    """
+    Generate comprehensive tactical intelligence assessment for an incident
+    Includes AI-powered analysis, threat level, attribution, and recommended actions
+    """
+    from backend.tactical_intel import generate_tactical_assessment, find_related_incidents
+
+    # Get incident
+    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    # Get restricted area if available
+    restricted_area = None
+    if incident.restricted_area_id:
+        area = db.query(RestrictedArea).filter(
+            RestrictedArea.id == incident.restricted_area_id
+        ).first()
+        if area:
+            restricted_area = {
+                "id": area.id,
+                "name": area.name,
+                "area_type": area.area_type,
+                "country": area.country,
+                "latitude": area.latitude,
+                "longitude": area.longitude,
+                "threat_level": area.threat_level
+            }
+
+    # Find related incidents
+    related_incidents = find_related_incidents(
+        incident_id=incident.id,
+        incident_lat=incident.latitude,
+        incident_lon=incident.longitude,
+        incident_date=datetime.combine(incident.sighting_date, datetime.min.time()),
+        restricted_area_id=incident.restricted_area_id,
+        db=db
+    )
+
+    # Prepare incident data
+    incident_data = {
+        "id": incident.id,
+        "title": incident.title,
+        "description": incident.description,
+        "sighting_date": incident.sighting_date,
+        "sighting_time": incident.sighting_time,
+        "latitude": incident.latitude,
+        "longitude": incident.longitude,
+        "altitude_m": incident.altitude_m,
+        "duration_minutes": incident.duration_minutes,
+        "drone_description": incident.drone_description,
+        "source": incident.source
+    }
+
+    # Generate assessment
+    assessment = generate_tactical_assessment(
+        incident=incident_data,
+        restricted_area=restricted_area,
+        related_incidents=related_incidents,
+        db=db
+    )
+
+    return {
+        "incident_id": incident_id,
+        "assessment": assessment,
+        "related_incidents_count": len(related_incidents),
+        "restricted_area": restricted_area,
+        "generated_at": datetime.utcnow().isoformat()
+    }
+
+
+@router.get("/{incident_id}/related")
+async def get_related_incidents(
+    incident_id: int,
+    radius_km: float = Query(50.0, ge=1.0, le=500.0),
+    time_window_days: int = Query(90, ge=1, le=365),
+    db: Session = Depends(get_db)
+):
+    """
+    Find incidents related to this one based on location and time proximity
+    """
+    from backend.tactical_intel import find_related_incidents
+
+    # Get incident
+    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    # Find related
+    related = find_related_incidents(
+        incident_id=incident.id,
+        incident_lat=incident.latitude,
+        incident_lon=incident.longitude,
+        incident_date=datetime.combine(incident.sighting_date, datetime.min.time()),
+        restricted_area_id=incident.restricted_area_id,
+        db=db,
+        radius_km=radius_km,
+        time_window_days=time_window_days
+    )
+
+    return {
+        "incident_id": incident_id,
+        "total_related": len(related),
+        "search_radius_km": radius_km,
+        "time_window_days": time_window_days,
+        "related_incidents": related
+    }
+
+
+@router.get("/{incident_id}/sources")
+async def get_incident_sources(incident_id: int, db: Session = Depends(get_db)):
+    """
+    Get all source articles/reports related to this incident
+    """
+    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    sources = []
+
+    # Add primary source
+    if incident.source_url:
+        sources.append({
+            "type": "primary",
+            "name": incident.primary_source_name or incident.source,
+            "url": incident.source_url,
+            "credibility": incident.primary_source_credibility,
+            "description": "Primary source for this incident"
+        })
+
+    # Add secondary sources
+    if incident.secondary_sources:
+        try:
+            secondary = json.loads(incident.secondary_sources) if isinstance(incident.secondary_sources, str) else incident.secondary_sources
+            if isinstance(secondary, list):
+                for src in secondary:
+                    if isinstance(src, dict):
+                        sources.append({
+                            "type": "secondary",
+                            "name": src.get("name", "Unknown"),
+                            "url": src.get("url", ""),
+                            "credibility": src.get("credibility", 0.5),
+                            "description": src.get("description", "")
+                        })
+        except Exception as e:
+            print(f"Error parsing secondary sources: {e}")
+
+    # Try to find related news articles from news_articles table
+    try:
+        # Search for articles with similar title or location
+        from backend.models import NewsArticle
+        news_articles = db.query(NewsArticle).filter(
+            or_(
+                NewsArticle.title.contains(incident.title[:50]),
+                and_(
+                    NewsArticle.pub_date >= incident.sighting_date - timedelta(days=2),
+                    NewsArticle.pub_date <= incident.sighting_date + timedelta(days=2)
+                )
+            )
+        ).limit(10).all()
+
+        for article in news_articles:
+            sources.append({
+                "type": "news",
+                "name": article.source,
+                "url": article.url,
+                "title": article.title,
+                "published": article.pub_date.isoformat() if article.pub_date else None,
+                "summary": article.summary[:200] if article.summary else ""
+            })
+    except Exception as e:
+        print(f"Error fetching news articles: {e}")
+
+    return {
+        "incident_id": incident_id,
+        "total_sources": len(sources),
+        "sources": sources
+    }
