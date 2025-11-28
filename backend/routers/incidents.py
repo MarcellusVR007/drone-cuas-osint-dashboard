@@ -9,8 +9,42 @@ from backend.models import Incident, RestrictedArea, DroneType
 from backend.trusted_sources import validate_source_url, is_source_blocked, get_trusted_sources_for_country
 import json
 import urllib.parse
+import re
 
 router = APIRouter()
+
+def detect_country_from_text(text: str) -> Optional[str]:
+    """
+    Detect country code from text (title or location name).
+    Returns country code (e.g., 'NL', 'BE', 'DE') or None.
+    """
+    if not text:
+        return None
+
+    text_lower = text.lower()
+
+    # Country keywords mapping
+    country_keywords = {
+        'NL': ['netherlands', 'dutch', 'amsterdam', 'rotterdam', 'schiphol', 'volkel', 'holland', 'eindhoven', 'utrecht'],
+        'BE': ['belgium', 'belgian', 'brussels', 'zaventem', 'antwerp', 'bruges', 'flanders'],
+        'DE': ['germany', 'german', 'berlin', 'munich', 'hamburg', 'frankfurt', 'cologne', 'brunsbüttel'],
+        'FR': ['france', 'french', 'paris', 'lyon', 'marseille', 'toulouse', 'nice'],
+        'UK': ['united kingdom', 'british', 'london', 'manchester', 'birmingham', 'scotland', 'wales'],
+        'EE': ['estonia', 'estonian', 'tallinn', 'reedo'],
+        'LV': ['latvia', 'latvian', 'riga'],
+        'LT': ['lithuania', 'lithuanian', 'vilnius'],
+        'PL': ['poland', 'polish', 'warsaw', 'krakow'],
+        'IT': ['italy', 'italian', 'rome', 'milan'],
+        'ES': ['spain', 'spanish', 'madrid', 'barcelona'],
+    }
+
+    # Check each country's keywords
+    for country_code, keywords in country_keywords.items():
+        for keyword in keywords:
+            if keyword in text_lower:
+                return country_code
+
+    return None
 
 def get_display_source(incident: Incident) -> str:
     """
@@ -103,6 +137,9 @@ class IncidentResponse(BaseModel):
     identification_evidence: Optional[str]
     identified_by: Optional[str]
     report_date: datetime
+    weather_conditions_json: Optional[str]
+    weather_favorability_score: Optional[float]
+    knmi_station_id: Optional[int]
 
     class Config:
         from_attributes = True
@@ -125,7 +162,8 @@ async def list_incidents(
     query = query.filter(
         or_(
             Incident.operational_class.is_(None),
-            Incident.operational_class == 'MERGED_MASTER'
+            Incident.operational_class == 'MERGED_MASTER',
+            Incident.operational_class == 'RSS_detected'
         )
     )
 
@@ -157,6 +195,40 @@ async def list_incidents(
     # Add display_source to each incident
     incident_list = []
     for incident in incidents:
+        # Get location name and country from restricted area (with error handling)
+        location_name = None
+        country = None
+        try:
+            if incident.restricted_area_id:
+                restricted_area = db.query(RestrictedArea).filter(RestrictedArea.id == incident.restricted_area_id).first()
+                if restricted_area:
+                    location_name = restricted_area.name
+                    country = restricted_area.country
+        except Exception as e:
+            print(f"Error fetching restricted area: {e}")
+
+        # SMART COUNTRY DETECTION: Override country if we can detect it from title or location
+        # This fixes cases where restricted_area is mismatched (e.g., Dutch incidents linked to Estonian bases)
+        detected_country_from_title = detect_country_from_text(incident.title)
+        detected_country_from_location = detect_country_from_text(location_name)
+
+        # Priority: detected from title > detected from location > restricted_area country
+        if detected_country_from_title:
+            country = detected_country_from_title
+        elif detected_country_from_location:
+            country = detected_country_from_location
+        # Otherwise keep the country from restricted_area (which might be None or wrong)
+
+        # Get drone type name (with error handling)
+        drone_type_name = None
+        try:
+            if incident.drone_type_id:
+                drone_type = db.query(DroneType).filter(DroneType.id == incident.drone_type_id).first()
+                if drone_type:
+                    drone_type_name = drone_type.name
+        except Exception as e:
+            print(f"Error fetching drone type: {e}")
+
         incident_dict = {
             "id": incident.id,
             "sighting_date": incident.sighting_date,
@@ -167,11 +239,13 @@ async def list_incidents(
             "drone_description": incident.drone_description,
             "drone_characteristics": incident.drone_characteristics,
             "drone_characteristics_sources": incident.drone_characteristics_sources,
-            "restricted_area_id": incident.restricted_area_id,  # Needed for location lookup
+            "restricted_area_id": incident.restricted_area_id,
+            "location_name": location_name,
+            "country": country,
             "distance_to_restricted_m": incident.distance_to_restricted_m,
             "duration_minutes": incident.duration_minutes,
             "source": incident.source,
-            "display_source": incident.display_source if incident.display_source else get_display_source(incident),  # Show merged sources if available
+            "display_source": incident.display_source if incident.display_source else get_display_source(incident),
             "confidence_score": incident.confidence_score,
             "title": incident.title,
             "description": incident.description,
@@ -181,7 +255,12 @@ async def list_incidents(
             "identification_confidence": incident.identification_confidence,
             "identification_evidence": incident.identification_evidence,
             "identified_by": incident.identified_by,
+            "drone_type_id": incident.drone_type_id,
+            "drone_type_name": drone_type_name,
             "report_date": incident.report_date,
+            "weather_conditions_json": incident.weather_conditions_json,
+            "weather_favorability_score": incident.weather_favorability_score,
+            "knmi_station_id": incident.knmi_station_id,
         }
         incident_list.append(incident_dict)
 
@@ -234,6 +313,9 @@ async def get_incident(incident_id: int, db: Session = Depends(get_db)):
         "report_date": incident.report_date,
         "created_at": incident.created_at,
         "updated_at": incident.updated_at,
+        "weather_conditions_json": incident.weather_conditions_json,
+        "weather_favorability_score": incident.weather_favorability_score,
+        "knmi_station_id": incident.knmi_station_id,
     }
 
     # Validate source URL if present
