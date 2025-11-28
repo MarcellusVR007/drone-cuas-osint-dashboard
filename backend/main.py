@@ -25,32 +25,48 @@ app.add_middleware(
 # Initialize database on startup
 @app.on_event("startup")
 async def startup():
-    init_db()
-    # Seed database if data export exists
     try:
-        seed_db()
+        init_db()
+        # Seed database if data export exists
+        try:
+            seed_db()
+        except Exception as e:
+            print(f"⚠️  Could not seed database: {e}")
+        print("✓ OSINT CUAS Dashboard Ready")
     except Exception as e:
-        print(f"⚠️  Could not seed database: {e}")
-    print("✓ OSINT CUAS Dashboard Ready")
+        print(f"⚠️  Startup error: {e}")
+        print("✓ OSINT CUAS Dashboard started with limited functionality")
 
-# Import and include routers
-from backend.routers import incidents, drone_types, restricted_areas, patterns, interventions, general, data_sources, sources, intelligence, socmint, blockchain, forums, gru_monitoring, flight_forensics, health_tests
+# Import and include routers with error handling
+def safe_include_router(router_module, router_name, prefix, tag):
+    """Safely include a router, catching import errors"""
+    try:
+        module = __import__(f"backend.routers.{router_module}", fromlist=[router_name])
+        router = getattr(module, router_name)
+        app.include_router(router, prefix=prefix, tags=[tag])
+        print(f"✓ Loaded router: {router_module}")
+    except Exception as e:
+        print(f"⚠️  Could not load router {router_module}: {e}")
 
-app.include_router(general.router, prefix="/api", tags=["general"])
-app.include_router(health_tests.router, prefix="/api", tags=["health"])
-app.include_router(data_sources.router, prefix="/api/data-sources", tags=["data-sources"])
-app.include_router(sources.router, prefix="/api/sources", tags=["sources"])
-app.include_router(intelligence.router, prefix="/api/intelligence", tags=["intelligence"])
-app.include_router(incidents.router, prefix="/api/incidents", tags=["incidents"])
-app.include_router(drone_types.router, prefix="/api/drone-types", tags=["drone-types"])
-app.include_router(restricted_areas.router, prefix="/api/restricted-areas", tags=["restricted-areas"])
-app.include_router(patterns.router, prefix="/api/patterns", tags=["patterns"])
-app.include_router(interventions.router, prefix="/api/interventions", tags=["interventions"])
-app.include_router(socmint.router, prefix="/api/socmint", tags=["socmint"])
-app.include_router(blockchain.router, prefix="/api/blockchain", tags=["blockchain"])
-app.include_router(forums.router, prefix="/api/forums", tags=["forums"])
-app.include_router(gru_monitoring.router, prefix="/api/gru-monitoring", tags=["gru-monitoring"])
-app.include_router(flight_forensics.router, prefix="/api/flight-forensics", tags=["flight-forensics"])
+# Core routers (essential for API)
+try:
+    from backend.routers import incidents, drone_types, restricted_areas, patterns
+    app.include_router(incidents.router, prefix="/api/incidents", tags=["incidents"])
+    app.include_router(drone_types.router, prefix="/api/drone-types", tags=["drone-types"])
+    app.include_router(restricted_areas.router, prefix="/api/restricted-areas", tags=["restricted-areas"])
+    app.include_router(patterns.router, prefix="/api/patterns", tags=["patterns"])
+    print("✓ Core routers loaded")
+except Exception as e:
+    print(f"⚠️  Error loading core routers: {e}")
+
+# Optional routers (nice to have)
+safe_include_router("general", "router", "/api", "general")
+safe_include_router("health_tests", "router", "/api", "health")
+safe_include_router("intelligence", "router", "/api/intelligence", "intelligence")
+safe_include_router("interventions", "router", "/api/interventions", "interventions")
+safe_include_router("socmint", "router", "/api/socmint", "socmint")
+safe_include_router("forums", "router", "/api/forums", "forums")
+safe_include_router("flight_forensics", "router", "/api/flight-forensics", "flight-forensics")
 
 # Mount static files
 if os.path.exists("frontend/src"):
